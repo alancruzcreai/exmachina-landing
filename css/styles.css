@@ -66,7 +66,7 @@ ul,ol{list-style:none}
 
 /* ---------- HEADER / NAV ---------- */
 .hdr{position:absolute;top:0;left:0;right:0;z-index:40;padding:26px clamp(18px,3.2vw,46px);pointer-events:none}
-.brand{display:flex;align-items:flex-end;gap:14px;pointer-events:auto;width:fit-content}
+.brand{display:flex;align-items:flex-end;gap:14px;pointer-events:auto;width:fit-content;padding:8px 0}
 .brand-word{height:clamp(17px,1.6vw,23px);width:auto;fill:var(--naranja);color:var(--naranja)}
 .brand-word use[href="#lgPlus"]{stroke:var(--naranja)}
 .brand-script{height:clamp(22px,2.1vw,30px);width:auto;fill:var(--crema)}
@@ -105,7 +105,7 @@ ul,ol{list-style:none}
 .hero::after{content:'';position:absolute;inset:auto 0 0 0;height:18%;background:linear-gradient(to top,rgba(16,3,3,.35),transparent);pointer-events:none}
 .hero-dots{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);display:flex;gap:14px;z-index:5}
 .dot{width:11px;height:11px;border-radius:50%;border:0;background:rgba(255,255,255,.45);cursor:pointer;padding:0;transition:background .3s,transform .3s;position:relative}
-.dot::after{content:'';position:absolute;inset:-12px}
+.dot::after{content:'';position:absolute;inset:-17px} /* 11px dot -> 45px hit area */
 .dot.is-active{background:var(--naranja);transform:scale(1.25)}
 
 /* ---------- INTRO ---------- */

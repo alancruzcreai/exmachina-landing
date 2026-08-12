@@ -1,9 +1,10 @@
 /* ============ EXMACHINA LATINO AMERICA ============ */
 /* WOFF2 first: the raw .otf trials are rejected by some browsers (the .ttf Jabin
    loaded fine while every .otf silently fell back to a system rounded face). */
-@font-face{font-family:'Umami';src:url('../fonts/NTUmamiTrial-Bold.woff2') format('woff2'),url('../fonts/NTUmamiTrial-Bold.otf') format('opentype');font-weight:700;font-display:block}
 @font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-Regular.woff2') format('woff2'),url('../fonts/NTDapperTrial-Regular.otf') format('opentype');font-weight:400;font-display:swap}
 @font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-Medium.woff2') format('woff2'),url('../fonts/NTDapperTrial-Medium.otf') format('opentype');font-weight:500;font-display:swap}
+@font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-Bold.woff2') format('woff2'),url('../fonts/NTDapperTrial-Bold.otf') format('opentype');font-weight:700;font-display:swap}
+@font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-Black.woff2') format('woff2'),url('../fonts/NTDapperTrial-Black.otf') format('opentype');font-weight:900;font-display:block}
 @font-face{font-family:'Neureal';src:url('../fonts/OONeurealTrial-SemiMono.woff2') format('woff2'),url('../fonts/OONeurealTrial-SemiMono.otf') format('opentype');font-weight:400;font-display:swap}
 @font-face{font-family:'NeurealMono';src:url('../fonts/OONeurealTrial-Mono.woff2') format('woff2'),url('../fonts/OONeurealTrial-Mono.otf') format('opentype');font-weight:400;font-display:swap}
 @font-face{font-family:'Jabin';src:url('../fonts/Jabin-BoldSwash2.woff2') format('woff2'),url('../fonts/Jabin-BoldSwash2.ttf') format('truetype');font-weight:700;font-display:block}
@@ -44,13 +45,14 @@ ul,ol{list-style:none}
 .wrap{width:var(--wrap);margin-inline:auto}
 .mono{font-family:'NeurealMono','Courier New',monospace}
 .jabin{font-family:'Jabin','Times New Roman',serif;font-weight:700}
-.u-font{font-family:'Umami','Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:-.005em;line-height:.94}
+/* display caps = NT Dapper Black, tracked tight like the mockup */
+.u-font{font-family:'Dapper','Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:-.032em;line-height:.94}
 .c-naranja{color:var(--naranja)}
 .c-blanco{color:var(--blanco)}
 .c-tinta{color:var(--tinta)}
 .plus{width:1em;height:1em;display:inline-block;vertical-align:-.12em;color:var(--naranja)}
 
-/* accent overlay for Umami (trial lacks acute vowels) */
+/* accent overlay: NT Dapper Trial has no ÁÉÍÓÚ glyphs (Ñ is fine) */
 .dx{position:relative;display:inline-block}
 .dx i{position:absolute;left:52%;top:-.30em;transform:translateX(-50%);font-family:'Dapper','Helvetica Neue',Helvetica,Arial,sans-serif;font-style:normal;font-size:.62em;line-height:1;letter-spacing:0}
 .nb{white-space:nowrap}
@@ -260,7 +262,7 @@ ul,ol{list-style:none}
 .member-ph img{width:100%;height:100%;object-fit:cover}
 .member-txt{text-align:right;color:var(--naranja);display:flex;flex-direction:column;align-items:flex-end}
 .member-name{font-size:clamp(64px,9vw,150px);line-height:.9;margin-bottom:18px}
-.member-caps{font-family:'Umami','Helvetica Neue',Helvetica,Arial,sans-serif;text-transform:uppercase;font-size:clamp(17px,1.7vw,25px);letter-spacing:.01em;margin-bottom:6px}
+.member-caps{font-family:'Dapper','Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:900;text-transform:uppercase;font-size:clamp(17px,1.7vw,25px);letter-spacing:-.02em;margin-bottom:6px}
 .member-role{font-size:clamp(16px,1.5vw,22px);margin-bottom:26px}
 .member-bio{font-size:clamp(12.5px,1.05vw,15px);line-height:1.8;max-width:56em;letter-spacing:.01em}
 .member-bio + .member-bio{margin-top:14px}

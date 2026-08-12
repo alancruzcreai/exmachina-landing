@@ -37,7 +37,7 @@
     });
   }
 
-  // NT Umami Trial: no acute vowels → overlay accent mark
+  // NT Dapper Trial: no acute capitals → overlay the accent mark
   const ACC = { 'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U' };
   function accentify(el) {
     const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {

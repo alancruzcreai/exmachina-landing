@@ -100,17 +100,36 @@ ul,ol{list-style:none}
 /* ---------- HERO ---------- */
 .hero{position:relative;height:100svh;min-height:560px;background:var(--tinta);overflow:hidden}
 .hero-slides{position:absolute;inset:0}
-.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.1s ease;pointer-events:none}
-.hero-slide.is-active{opacity:1}
-.hero-slide picture{display:block;width:100%;height:100%}
-.hero-slide img{width:100%;height:100%;object-fit:cover;object-position:center 32%;transform:scale(1.05)}
-.hero-slide.is-active img{animation:kenburns 7s ease-out forwards}
-@keyframes kenburns{from{transform:scale(1.09)}to{transform:scale(1.0)}}
-.hero::after{content:'';position:absolute;inset:auto 0 0 0;height:18%;background:linear-gradient(to top,rgba(16,3,3,.35),transparent);pointer-events:none}
-.hero-dots{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);display:flex;gap:14px;z-index:5}
-.dot{width:11px;height:11px;border-radius:50%;border:0;background:rgba(255,255,255,.45);cursor:pointer;padding:0;transition:background .3s,transform .3s;position:relative}
-.dot::after{content:'';position:absolute;inset:-17px} /* 11px dot -> 45px hit area */
-.dot.is-active{background:var(--naranja);transform:scale(1.25)}
+/* crossfade: outgoing slide keeps drifting while the incoming one settles, so the
+   cut never reads as a hard swap. 1.4s is long enough to feel like a dissolve. */
+.hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;will-change:opacity;
+  transition:opacity 1.4s cubic-bezier(.4,0,.2,1)}
+.hero-slide.is-active{opacity:1;z-index:2}
+.hero-slide.is-leaving{z-index:1}
+.hero-slide picture{display:block;width:100%;height:100%;overflow:hidden}
+.hero-slide img{width:100%;height:100%;object-fit:cover;object-position:center 42%;
+  transform:scale(1.06);will-change:transform}
+.hero-slide.is-active img{animation:kenburns 8.4s cubic-bezier(.22,.61,.36,1) forwards}
+@keyframes kenburns{from{transform:scale(1.075) translate3d(.6%,0,0)}to{transform:scale(1.0) translate3d(0,0,0)}}
+.hero::after{content:'';position:absolute;inset:auto 0 0 0;height:24%;z-index:3;
+  background:linear-gradient(to top,rgba(16,3,3,.5),transparent);pointer-events:none}
+
+.hero-dots{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);display:flex;gap:10px;z-index:6}
+.dot{
+  width:11px;height:11px;border-radius:999px;border:0;padding:0;cursor:pointer;position:relative;
+  background:rgba(255,255,255,.38);overflow:hidden;
+  transition:width .55s var(--ease),background .45s ease;
+}
+.dot::after{content:'';position:absolute;inset:-17px} /* keeps a 45px touch target */
+.dot:hover{background:rgba(255,255,255,.62)}
+.dot.is-active{width:52px;background:rgba(255,255,255,.28)}
+/* The fill animation IS the clock: its animationend advances the slide, so the bar
+   and the crossfade can never drift apart, and pausing one pauses both. */
+.dot-fill{position:absolute;inset:0;background:var(--naranja);border-radius:inherit;
+  transform:scaleX(0);transform-origin:left center}
+.dot.is-active .dot-fill{animation:dotFill var(--hold,6000ms) linear forwards}
+@keyframes dotFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.hero.is-paused .dot-fill,.hero.is-paused .hero-slide.is-active img{animation-play-state:paused}
 
 /* ---------- INTRO ---------- */
 .intro{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(40px,6vw,96px);align-items:center;padding:clamp(84px,10vw,150px) 0}
@@ -327,7 +346,7 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
   .serv,.serv:last-child{grid-column:span 1;aspect-ratio:1034/1213}
   /* full-bleed cover at 375px would blow the image up ~4x; a shorter hero + the
      0.63 mobile crop lands within a few px of the artwork's real proportions */
-  .hero{height:72svh;min-height:460px}
+  .hero{height:66svh;min-height:440px}
   .hero-slide img{object-position:center 50%;transform:none}
   .hero-slide.is-active img{animation:none}
   .hero-dots{bottom:calc(84px + env(safe-area-inset-bottom))}

@@ -17,7 +17,7 @@
 <link rel="preload" href="fonts/NTDapperTrial-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Jabin-BoldSwash2.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/OONeurealTrial-SemiMono.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v=2">
 </head>
 <body>
 
@@ -76,22 +76,27 @@
 <section class="hero" id="inicio" aria-label="ExMachina">
   <div class="hero-slides">
     <figure class="hero-slide is-active"><picture>
-      <source media="(max-width:720px)" srcset="img/hero_mujer_m.webp">
-      <img src="img/hero_mujer_full.webp" alt="Retrato con tipografía líquida cromada de ExMachina" fetchpriority="high">
+      <source media="(max-width:720px)" srcset="img/hero_a_m.webp">
+      <img src="img/hero_a.webp" alt="Retrato con la palabra ExMachina en tipografía líquida cromada" fetchpriority="high">
     </picture></figure>
     <figure class="hero-slide"><picture>
-      <source media="(max-width:720px)" srcset="img/hero_hall_m.webp">
-      <img src="img/hero_hall.webp" alt="Interior barroco en penumbra" loading="lazy">
+      <source media="(max-width:720px)" srcset="img/hero_b_m.webp">
+      <img src="img/hero_b.webp" alt="Retrato a contraluz contra el cielo con el lettering líquido de ExMachina" loading="lazy">
     </picture></figure>
     <figure class="hero-slide"><picture>
-      <source media="(max-width:720px)" srcset="img/hero_badge_m.webp">
-      <img src="img/hero_badge.webp" alt="Insignia circular EXM Latinoamérica" loading="lazy">
+      <source media="(max-width:720px)" srcset="img/hero_c_m.webp">
+      <img src="img/hero_c.webp" alt="Primer plano de un rostro cubierto por el lettering líquido de ExMachina" loading="lazy">
+    </picture></figure>
+    <figure class="hero-slide"><picture>
+      <source media="(max-width:720px)" srcset="img/hero_d_m.webp">
+      <img src="img/hero_d.webp" alt="Figura de cuerpo entero bajo un cielo nublado con el lettering líquido de ExMachina" loading="lazy">
     </picture></figure>
   </div>
-  <div class="hero-dots" role="group" aria-label="Cambiar imagen">
-    <button class="dot is-active" aria-label="Imagen 1" aria-current="true"></button>
-    <button class="dot" aria-label="Imagen 2"></button>
-    <button class="dot" aria-label="Imagen 3"></button>
+  <div class="hero-dots" role="tablist" aria-label="Imágenes del carrusel">
+    <button class="dot is-active" role="tab" aria-selected="true" aria-label="Imagen 1 de 4"><span class="dot-fill"></span></button>
+    <button class="dot" role="tab" aria-selected="false" aria-label="Imagen 2 de 4"><span class="dot-fill"></span></button>
+    <button class="dot" role="tab" aria-selected="false" aria-label="Imagen 3 de 4"><span class="dot-fill"></span></button>
+    <button class="dot" role="tab" aria-selected="false" aria-label="Imagen 4 de 4"><span class="dot-fill"></span></button>
   </div>
 </section>
 
@@ -359,6 +364,6 @@
 <script src="vendor/gsap.min.js" defer></script>
 <script src="vendor/ScrollTrigger.min.js" defer></script>
 <script src="vendor/lenis.min.js" defer></script>
-<script src="js/main.js" defer></script>
+<script src="js/main.js?v=2" defer></script>
 </body>
 </html>

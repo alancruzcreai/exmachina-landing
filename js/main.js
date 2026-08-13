@@ -123,30 +123,80 @@
   }
 
   /* ---------- HERO CAROUSEL ---------- */
+  const hero = document.querySelector('.hero');
   const slides = [...document.querySelectorAll('.hero-slide')];
   const dots = [...document.querySelectorAll('.hero-dots .dot')];
-  let cur = 0, timer = null;
-  function goTo(i) {
-    cur = (i + slides.length) % slides.length;
-    slides.forEach((s, k) => s.classList.toggle('is-active', k === cur));
+  const fills = dots.map(d => d.querySelector('.dot-fill'));
+  const FADE = 1400;          // must match the CSS crossfade
+  let cur = 0;
+
+  // decode the next image ahead of time so the crossfade never waits on network
+  function preload(i) {
+    const img = slides[(i + slides.length) % slides.length].querySelector('img');
+    if (img && !img.complete) { img.loading = 'eager'; img.fetchPriority = 'low'; }
+  }
+
+  function goTo(i, userInitiated) {
+    const next = (i + slides.length) % slides.length;
+    if (next === cur) return;
+    const outgoing = slides[cur];
+    outgoing.classList.remove('is-active');
+    outgoing.classList.add('is-leaving');
+    setTimeout(() => outgoing.classList.remove('is-leaving'), FADE);
+    cur = next;
+    const s = slides[cur];
+    s.classList.add('is-active');
+    // restart the ken-burns so every slide gets the full drift, not a partial one
+    const img = s.querySelector('img');
+    if (img && !reduced) { img.style.animation = 'none'; void img.offsetWidth; img.style.animation = ''; }
     dots.forEach((d, k) => {
       d.classList.toggle('is-active', k === cur);
-      if (k === cur) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current');
+      d.setAttribute('aria-selected', k === cur ? 'true' : 'false');
     });
+    // restart the progress animation from zero on the newly active dot
+    const f = fills[cur];
+    if (f && !reduced) {
+      f.style.animation = 'none'; void f.offsetWidth; f.style.animation = '';
+      // a manual pick holds a little longer so the choice is actually seen
+      hero.style.setProperty('--hold', (userInitiated ? 7200 : 6000) + 'ms');
+    }
+    preload(cur + 1);
   }
-  function play() { if (!reduced && !timer) timer = setInterval(() => goTo(cur + 1), 5600); }
-  function stop() { clearInterval(timer); timer = null; }
-  dots.forEach((d, k) => d.addEventListener('click', () => { stop(); goTo(k); play(); }));
-  document.addEventListener('visibilitychange', () => document.hidden ? stop() : play());
-  const hero = document.querySelector('.hero');
+
+  // the fill finishing IS the cue to advance — bar and slide can't drift apart
+  fills.forEach((f, k) => f.addEventListener('animationend', e => {
+    if (e.animationName === 'dotFill' && k === cur) goTo(cur + 1);
+  }));
+
+  dots.forEach((d, k) => d.addEventListener('click', () => goTo(k, true)));
+  // Hovering means the user is looking — don't yank the image away mid-read.
+  // Mouse-only: on touch, pointerenter fires on tap and pointerleave often never
+  // arrives, which would freeze the carousel for good.
+  if (window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
+    hero.addEventListener('mouseenter', () => hero.classList.add('is-paused'));
+    hero.addEventListener('mouseleave', () => hero.classList.remove('is-paused'));
+  }
+
+  // arrow keys while a dot has focus — the standard tablist interaction
+  document.querySelector('.hero-dots').addEventListener('keydown', e => {
+    let n = null;
+    if (e.key === 'ArrowRight') n = cur + 1;
+    if (e.key === 'ArrowLeft') n = cur - 1;
+    if (n === null) return;
+    e.preventDefault();
+    goTo(n, true);
+    dots[(n + dots.length) % dots.length].focus();
+  });
   let sx = null;
   hero.addEventListener('pointerdown', e => { sx = e.clientX; }, { passive: true });
   hero.addEventListener('pointerup', e => {
     if (sx === null) return;
     const dx = e.clientX - sx; sx = null;
-    if (Math.abs(dx) > 45) { stop(); goTo(cur + (dx < 0 ? 1 : -1)); play(); }
+    if (Math.abs(dx) > 45) goTo(cur + (dx < 0 ? 1 : -1), true);
   }, { passive: true });
-  play();
+
+  preload(1);
+  hero.style.setProperty('--hold', '6000ms');
 
   /* ---------- SERVICE CARDS (touch toggle) ---------- */
   const touchUI = window.matchMedia('(hover: none)').matches;

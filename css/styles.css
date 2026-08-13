@@ -100,17 +100,24 @@ ul,ol{list-style:none}
 /* ---------- HERO ---------- */
 .hero{position:relative;height:100svh;min-height:560px;background:var(--tinta);overflow:hidden}
 .hero-slides{position:absolute;inset:0}
-/* crossfade: outgoing slide keeps drifting while the incoming one settles, so the
-   cut never reads as a hard swap. 1.4s is long enough to feel like a dissolve. */
-.hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;will-change:opacity;
-  transition:opacity 1.4s cubic-bezier(.4,0,.2,1)}
+/* Crossfade: the outgoing frame keeps drifting while the incoming one settles, so
+   the change never reads as a cut. will-change is set only on the two slides in
+   play — pinning all four costs real memory on phones and causes the stutter. */
+.hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;
+  transition:opacity 1.1s cubic-bezier(.33,0,.15,1)}
+.hero-slide.is-active,.hero-slide.is-leaving{will-change:opacity}
 .hero-slide.is-active{opacity:1;z-index:2}
 .hero-slide.is-leaving{z-index:1}
-.hero-slide picture{display:block;width:100%;height:100%;overflow:hidden}
+/* parallax lives on the wrapper, ken burns on the image: two transforms that
+   would otherwise overwrite each other */
+/* no CSS transition here on purpose: the JS lerp already smooths the drift, and
+   easing it twice makes the parallax feel laggy rather than fluid */
+.hero-slide picture{display:block;width:100%;height:100%;overflow:hidden;
+  transform:translate3d(var(--px,0px),var(--py,0px),0) scale(1.035)}
 .hero-slide img{width:100%;height:100%;object-fit:cover;object-position:center 42%;
-  transform:scale(1.06);will-change:transform}
-.hero-slide.is-active img{animation:kenburns 8.4s cubic-bezier(.22,.61,.36,1) forwards}
-@keyframes kenburns{from{transform:scale(1.075) translate3d(.6%,0,0)}to{transform:scale(1.0) translate3d(0,0,0)}}
+  transform:scale(1.05)}
+.hero-slide.is-active img{animation:kenburns 7.4s cubic-bezier(.25,.6,.35,1) forwards}
+@keyframes kenburns{from{transform:scale(1.065) translate3d(.5%,0,0)}to{transform:scale(1.0) translate3d(0,0,0)}}
 .hero::after{content:'';position:absolute;inset:auto 0 0 0;height:24%;z-index:3;
   background:linear-gradient(to top,rgba(16,3,3,.5),transparent);pointer-events:none}
 
@@ -360,7 +367,10 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .marquee-track{animation:none;flex-wrap:wrap;width:auto}
+  /* keep the dissolve and the progress bar — drop only the movement */
   .hero-slide.is-active img{animation:none;transform:none}
+  .hero-slide picture{transform:none}
+  .hero-slide{transition:opacity .6s ease}
   .loader{animation-delay:.4s}
   .loader-plus{animation:none}
   [data-ilum] .w{opacity:1 !important}

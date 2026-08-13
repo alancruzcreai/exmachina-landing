@@ -127,8 +127,9 @@
   const slides = [...document.querySelectorAll('.hero-slide')];
   const dots = [...document.querySelectorAll('.hero-dots .dot')];
   const fills = dots.map(d => d.querySelector('.dot-fill'));
-  const FADE = 1400;          // must match the CSS crossfade
-  let cur = 0;
+  const FADE = 1100;          // must match the CSS crossfade
+  const HOLD = 5200, HOLD_MANUAL = 6400;
+  let cur = 0, holdMs = HOLD, timerId = null, startedAt = 0, remaining = HOLD, isPaused = false;
 
   // decode the next image ahead of time so the crossfade never waits on network
   function preload(i) {
@@ -153,19 +154,42 @@
       d.classList.toggle('is-active', k === cur);
       d.setAttribute('aria-selected', k === cur ? 'true' : 'false');
     });
-    // restart the progress animation from zero on the newly active dot
+    // a manual pick holds a little longer so the choice is actually seen
+    holdMs = userInitiated ? HOLD_MANUAL : HOLD;
+    hero.style.setProperty('--hold', holdMs + 'ms');
     const f = fills[cur];
-    if (f && !reduced) {
-      f.style.animation = 'none'; void f.offsetWidth; f.style.animation = '';
-      // a manual pick holds a little longer so the choice is actually seen
-      hero.style.setProperty('--hold', (userInitiated ? 7200 : 6000) + 'ms');
-    }
+    if (f && !reduced) { f.style.animation = 'none'; void f.offsetWidth; f.style.animation = ''; }
     preload(cur + 1);
+    arm(holdMs);
   }
 
-  // the fill finishing IS the cue to advance — bar and slide can't drift apart
+  /* The bar is the visible clock, but a timer is the authority: on mobile the
+     animationend can be throttled or dropped and the carousel would just stop.
+     Whichever fires first advances; arm() cancels the other. */
+  // Reduced-motion still advances: what that setting asks us to drop is vestibular
+  // movement (parallax, zoom, drift), not a plain opacity dissolve. Killing the
+  // autoplay outright would leave those users staring at a single frozen frame.
+  function arm(ms) {
+    clearTimeout(timerId);
+    remaining = ms;
+    startedAt = Date.now();
+    timerId = setTimeout(() => goTo(cur + 1), ms);
+  }
+  function pauseClock() {
+    if (isPaused) return;
+    isPaused = true;
+    clearTimeout(timerId);
+    remaining = Math.max(400, remaining - (Date.now() - startedAt));
+  }
+  function resumeClock() {
+    if (!isPaused) return;
+    isPaused = false;
+    startedAt = Date.now();
+    timerId = setTimeout(() => goTo(cur + 1), remaining);
+  }
+
   fills.forEach((f, k) => f.addEventListener('animationend', e => {
-    if (e.animationName === 'dotFill' && k === cur) goTo(cur + 1);
+    if (e.animationName === 'dotFill' && k === cur && !isPaused) goTo(cur + 1);
   }));
 
   dots.forEach((d, k) => d.addEventListener('click', () => goTo(k, true)));
@@ -173,9 +197,14 @@
   // Mouse-only: on touch, pointerenter fires on tap and pointerleave often never
   // arrives, which would freeze the carousel for good.
   if (window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
-    hero.addEventListener('mouseenter', () => hero.classList.add('is-paused'));
-    hero.addEventListener('mouseleave', () => hero.classList.remove('is-paused'));
+    hero.addEventListener('mouseenter', () => { hero.classList.add('is-paused'); pauseClock(); });
+    hero.addEventListener('mouseleave', () => { hero.classList.remove('is-paused'); resumeClock(); });
   }
+  // a backgrounded tab throttles timers; restart cleanly instead of jumping slides
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pauseClock();
+    else { resumeClock(); if (!isPaused && !timerId) arm(holdMs); }
+  });
 
   // arrow keys while a dot has focus — the standard tablist interaction
   document.querySelector('.hero-dots').addEventListener('keydown', e => {
@@ -196,7 +225,35 @@
   }, { passive: true });
 
   preload(1);
-  hero.style.setProperty('--hold', '6000ms');
+  hero.style.setProperty('--hold', HOLD + 'ms');
+  arm(HOLD);
+
+  /* ---------- HERO PARALLAX (mouse + scroll) ---------- */
+  // The chrome lettering is baked into each photo, so the whole frame drifts —
+  // enough to feel alive, small enough that it never reads as a moving image.
+  if (!reduced) {
+    let tx = 0, ty = 0, cx = 0, cy = 0, praf = null;
+    const MAX_X = 18, MAX_Y = 12;
+    function ease() {
+      cx += (tx - cx) * 0.075;
+      cy += (ty - cy) * 0.075;
+      hero.style.setProperty('--px', (cx * MAX_X).toFixed(2) + 'px');
+      hero.style.setProperty('--py', (cy * MAX_Y).toFixed(2) + 'px');
+      praf = (Math.abs(tx - cx) > 0.0015 || Math.abs(ty - cy) > 0.0015)
+        ? requestAnimationFrame(ease) : null;
+    }
+    function aim(e) {
+      const r = hero.getBoundingClientRect();
+      if (!r.width) return;
+      tx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      if (!praf) ease();   // step now, then let rAF carry the easing
+    }
+    if (window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
+      hero.addEventListener('pointermove', aim, { passive: true });
+      hero.addEventListener('pointerleave', () => { tx = ty = 0; if (!praf) ease(); });
+    }
+  }
 
   /* ---------- SERVICE CARDS (touch toggle) ---------- */
   const touchUI = window.matchMedia('(hover: none)').matches;
@@ -301,6 +358,17 @@
 
     // hero content settles after loader
     gsap.from('.hero-slides', { scale: 1.06, duration: 1.6, ease: 'power2.out', delay: 2.35 });
+
+    // scroll parallax — this is what keeps the hero alive on touch, where the
+    // pointer drift never happens
+    gsap.to('.hero-slides', {
+      yPercent: 14, ease: 'none',
+      scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.4 }
+    });
+    gsap.to('.hero-dots', {
+      opacity: 0, y: 20, ease: 'none',
+      scrollTrigger: { trigger: '.hero', start: 'top top', end: '38% top', scrub: 0.3 }
+    });
 
     // late-loading fonts and images shift layout after triggers are measured
     if (document.fonts) document.fonts.ready.then(() => ScrollTrigger.refresh());

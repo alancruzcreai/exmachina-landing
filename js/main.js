@@ -235,7 +235,7 @@
     let tx = 0, ty = 0, cx = 0, cy = 0, praf = null;
     // the photo drifts a little, the lettering noticeably more: same cursor, two
     // depths. Opposed signs make the gap read stronger without moving either far.
-    const BG_X = 14, BG_Y = 9, LT_X = -34, LT_Y = -22;
+    const BG_X = 12, BG_Y = 8, LT_X = -26, LT_Y = -17;  // kept inside the 5% overscan
     function ease() {
       cx += (tx - cx) * 0.08;
       cy += (ty - cy) * 0.08;

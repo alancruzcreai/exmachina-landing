@@ -368,7 +368,7 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
   /* full-bleed cover at 375px would blow the image up ~4x; a shorter hero + the
      0.63 mobile crop lands within a few px of the artwork's real proportions */
   .hero{height:70svh;min-height:460px}
-  .hero-letter picture{transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1.06)}
+  .hero-letter picture{transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1)}
   .hero-slide img{object-position:center 50%;transform:none}
   .hero-slide.is-active img{animation:none}
   .hero-dots{bottom:calc(84px + env(safe-area-inset-bottom))}

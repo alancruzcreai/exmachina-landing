@@ -5,6 +5,7 @@
 @font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-Medium.woff2') format('woff2'),url('../fonts/NTDapperTrial-Medium.otf') format('opentype');font-weight:500;font-display:swap}
 @font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-Bold.woff2') format('woff2'),url('../fonts/NTDapperTrial-Bold.otf') format('opentype');font-weight:700;font-display:swap}
 @font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-Black.woff2') format('woff2'),url('../fonts/NTDapperTrial-Black.otf') format('opentype');font-weight:900;font-display:block}
+@font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-BlackItalic.woff2') format('woff2'),url('../fonts/NTDapperTrial-BlackItalic.otf') format('opentype');font-weight:900;font-style:italic;font-display:block}
 @font-face{font-family:'Neureal';src:url('../fonts/OONeurealTrial-SemiMono.woff2') format('woff2'),url('../fonts/OONeurealTrial-SemiMono.otf') format('opentype');font-weight:400;font-display:swap}
 @font-face{font-family:'NeurealMono';src:url('../fonts/OONeurealTrial-Mono.woff2') format('woff2'),url('../fonts/OONeurealTrial-Mono.otf') format('opentype');font-weight:400;font-display:swap}
 @font-face{font-family:'Jabin';src:url('../fonts/Jabin-BoldSwash2.woff2') format('woff2'),url('../fonts/Jabin-BoldSwash2.ttf') format('truetype');font-weight:700;font-display:block}
@@ -231,10 +232,25 @@ ul,ol{list-style:none}
 /* ---------- MANIFIESTO ---------- */
 .mani{display:flex;flex-direction:column;gap:clamp(90px,12vw,190px);padding-bottom:clamp(90px,11vw,170px)}
 .mani-item{position:relative;text-align:center;display:flex;flex-direction:column;align-items:center}
+/* ---- emphasis inside the big Dapper caps only (never the small copy below,
+   where any of this would cost legibility) ---- */
+.mk-it{font-style:italic;font-weight:900;letter-spacing:-.02em}
+.mk-gr{ /* the tag: same blackletter the brand already uses for "Latina" */
+  font-family:'Jabin','Times New Roman',serif;font-weight:700;font-style:normal;
+  text-transform:none;letter-spacing:0;font-size:1.1em;line-height:.7;
+  display:inline-block;vertical-align:-.05em;margin:0 .04em;color:var(--naranja)}
+.mk-ul{position:relative;display:inline-block}
+/* sits clear of the baseline: any closer and the stroke reads as a strikethrough
+   across the descenders instead of a mark under the line */
+.mk-ul svg{position:absolute;left:-1.5%;bottom:-.16em;width:103%;height:.26em;overflow:visible;pointer-events:none}
+.mk-ul path{fill:none;stroke:var(--naranja);stroke-width:8;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:var(--len,600);stroke-dashoffset:var(--len,600)}
+.no-js .mk-ul path,html:not(.js) .mk-ul path{stroke-dashoffset:0}
+
 .mani-num{color:var(--rojo);font-size:15px;letter-spacing:.1em;margin-bottom:26px;position:relative;z-index:2}
 .mani-h{font-size:clamp(34px,5.6vw,82px);color:var(--rojo);max-width:15em;position:relative;z-index:2;margin-bottom:30px}
 .mani-h .jabin{font-style:normal;text-transform:none;font-size:1.14em;line-height:.7;vertical-align:-.06em;letter-spacing:0;display:inline-block;margin:0 .06em}
-.mani-p{font-size:clamp(17.5px,2vw,28px);line-height:1.42;max-width:31em;position:relative;z-index:2}
+.mani-p{font-size:clamp(17.5px,2vw,28px);line-height:1.42;max-width:31em;position:relative;z-index:2;font-weight:500}
 .mani-ghost{
   position:absolute;z-index:0;top:50%;left:50%;
   transform:translate(calc(-50% + var(--gx,0px)),-50%);

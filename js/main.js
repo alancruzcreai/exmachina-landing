@@ -99,6 +99,40 @@
     return [...el.querySelectorAll('.w')];
   }
 
+  /* ---------- HAND-DRAWN UNDERLINES ---------- */
+  // Built in JS rather than hard-coded so each one gets its own wobble: a ruler-
+  // straight rule under display caps reads as a text-decoration, not as a mark
+  // someone made. Drawn on scroll via ScrollTrigger below.
+  function buildUnderlines() {
+    document.querySelectorAll('.mk-ul').forEach((el, i) => {
+      if (el.querySelector('svg')) return;
+      const seed = i * 37 + 11;
+      const rnd = n => ((Math.sin(seed * (n + 1)) + 1) / 2);        // deterministic
+      const W = 100, H = 12;
+      const y0 = 6 + (rnd(1) - 0.5) * 2.4;
+      const pts = [
+        `M 0 ${(y0 + 1.6).toFixed(2)}`,
+        `C ${18 + rnd(2) * 6} ${(y0 - 3 - rnd(3) * 1.6).toFixed(2)},` +
+        ` ${38 + rnd(4) * 8} ${(y0 + 3.4 + rnd(5) * 1.4).toFixed(2)},` +
+        ` ${58 + rnd(6) * 5} ${(y0 - 0.6).toFixed(2)}`,
+        `S ${84 + rnd(7) * 6} ${(y0 + 3.2 + rnd(8)).toFixed(2)}, ${W} ${(y0 - 1.4).toFixed(2)}`
+      ].join(' ');
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      svg.setAttribute('preserveAspectRatio', 'none');
+      svg.setAttribute('aria-hidden', 'true');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', pts);
+      svg.appendChild(path);
+      el.appendChild(svg);
+      const len = path.getTotalLength() || 120;
+      path.style.setProperty('--len', len);
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = reduced ? 0 : len;
+    });
+  }
+  buildUnderlines();
+
   dapperFix(document.body);
   const ilumSets = [];
   document.querySelectorAll('[data-ilum]').forEach(el => { ilumSets.push({ el, words: splitWords(el) }); });
@@ -344,6 +378,23 @@
       gsap.fromTo(words, { opacity: 0.13 }, {
         opacity: 1, ease: 'none', stagger: 0.045,
         scrollTrigger: { trigger: el, start: 'top 84%', end: 'top 32%', scrub: 0.6 }
+      });
+    });
+
+    // underlines draw themselves as the line arrives, just after its words light up
+    document.querySelectorAll('.mk-ul path').forEach(path => {
+      gsap.to(path, {
+        strokeDashoffset: 0, duration: .85, ease: 'power2.inOut',
+        scrollTrigger: { trigger: path.closest('.mani-h') || path, start: 'top 70%', once: true }
+      });
+    });
+    // italics and tags settle in with a small skew/rise — enough to register as
+    // deliberate emphasis without turning into a separate animation
+    document.querySelectorAll('.mk-it, .mk-gr').forEach(el => {
+      gsap.from(el, {
+        yPercent: 22, opacity: 0, rotate: el.classList.contains('mk-gr') ? -3.5 : 0,
+        duration: .8, ease: 'power3.out',
+        scrollTrigger: { trigger: el.closest('.mani-h') || el, start: 'top 78%', once: true }
       });
     });
 

@@ -5,7 +5,6 @@
 @font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-Medium.woff2') format('woff2'),url('../fonts/NTDapperTrial-Medium.otf') format('opentype');font-weight:500;font-display:swap}
 @font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-Bold.woff2') format('woff2'),url('../fonts/NTDapperTrial-Bold.otf') format('opentype');font-weight:700;font-display:swap}
 @font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-Black.woff2') format('woff2'),url('../fonts/NTDapperTrial-Black.otf') format('opentype');font-weight:900;font-display:block}
-@font-face{font-family:'Dapper';src:url('../fonts/NTDapperTrial-BlackItalic.woff2') format('woff2'),url('../fonts/NTDapperTrial-BlackItalic.otf') format('opentype');font-weight:900;font-style:italic;font-display:block}
 @font-face{font-family:'Neureal';src:url('../fonts/OONeurealTrial-SemiMono.woff2') format('woff2'),url('../fonts/OONeurealTrial-SemiMono.otf') format('opentype');font-weight:400;font-display:swap}
 @font-face{font-family:'NeurealMono';src:url('../fonts/OONeurealTrial-Mono.woff2') format('woff2'),url('../fonts/OONeurealTrial-Mono.otf') format('opentype');font-weight:400;font-display:swap}
 @font-face{font-family:'Jabin';src:url('../fonts/Jabin-BoldSwash2.woff2') format('woff2'),url('../fonts/Jabin-BoldSwash2.ttf') format('truetype');font-weight:700;font-display:block}
@@ -234,7 +233,45 @@ ul,ol{list-style:none}
 .mani-item{position:relative;text-align:center;display:flex;flex-direction:column;align-items:center}
 /* ---- emphasis inside the big Dapper caps only (never the small copy below,
    where any of this would cost legibility) ---- */
-.mk-it{font-style:italic;font-weight:900;letter-spacing:-.02em}
+/* circled word: the loop overshoots its start, the way a marker actually closes */
+.mk-circle{position:relative;display:inline-block;padding:0 .2em}
+.mk-circle svg{position:absolute;left:-11%;top:-34%;width:123%;height:170%;overflow:visible;pointer-events:none}
+/* non-scaling-stroke keeps the line an even weight: without it the squash that
+   fits the loop around a long word makes the sides fat and the top hairline */
+.mk-circle path{fill:none;stroke:var(--naranja);stroke-width:4.5;vector-effect:non-scaling-stroke;
+  stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:var(--len,400);stroke-dashoffset:var(--len,400);
+  transition:stroke-dashoffset 1.15s cubic-bezier(.55,0,.3,1)}
+.mk-circle.is-drawn path{stroke-dashoffset:0}
+
+/* crown scrawled above the word */
+/* the margin opens the gap the crown lives in — without it the mark lands
+   inside the previous line and reads as noise between letters */
+/* block, not inline: a margin on an inline box doesn't open the line above, so
+   the crown kept landing inside the previous line. Its own line guarantees room. */
+.mk-crown{position:relative;display:block;width:fit-content;margin:.34em auto .02em;z-index:6}
+/* in normal flow, not absolute: positioned above the line it kept getting clipped
+   or buried by the previous line — here it simply occupies its own space */
+/* relative + z-index: the .94 line-height makes the line above overlap this
+   space, and without a layer of its own the crown gets painted over */
+.mk-crown svg{display:block;position:relative;z-index:6;width:50%;aspect-ratio:96/32;height:auto;
+  margin:0 auto .04em;overflow:visible;pointer-events:none}
+.mk-crown path{fill:none;stroke:var(--naranja);stroke-width:10;vector-effect:non-scaling-stroke;
+  stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:var(--len,400);stroke-dashoffset:var(--len,400);
+  transition:stroke-dashoffset .95s cubic-bezier(.5,0,.35,1)}
+.mk-crown.is-drawn path{stroke-dashoffset:0}
+
+/* marker swipe behind the word */
+.mk-hl{position:relative;display:inline-block;z-index:0}
+.mk-hl svg{position:absolute;left:-3%;top:12%;width:106%;height:82%;z-index:-1;overflow:visible;pointer-events:none}
+.mk-hl path{fill:none;stroke:var(--naranja);stroke-opacity:.28;stroke-width:44;vector-effect:non-scaling-stroke;stroke-linecap:round;
+  stroke-dasharray:var(--len,400);stroke-dashoffset:var(--len,400);
+  transition:stroke-dashoffset .8s cubic-bezier(.4,0,.3,1)}
+.mk-hl.is-drawn path{stroke-dashoffset:0}
+
+html:not(.js) .mk-circle path,html:not(.js) .mk-crown path,html:not(.js) .mk-hl path{stroke-dashoffset:0}
+
 .mk-gr{ /* the tag: same blackletter the brand already uses for "Latina" */
   font-family:'Jabin','Times New Roman',serif;font-weight:700;font-style:normal;
   text-transform:none;letter-spacing:0;font-size:1.1em;line-height:.7;
@@ -246,20 +283,21 @@ ul,ol{list-style:none}
 /* drawn by a plain CSS transition toggled from an IntersectionObserver: fewer
    moving parts than routing it through ScrollTrigger, and it can't be starved by
    the other triggers already bound to these headings */
-.mk-ul path{fill:none;stroke:var(--naranja);stroke-width:8;stroke-linecap:round;stroke-linejoin:round;
-  stroke-dasharray:var(--len,600);stroke-dashoffset:var(--len,600);
+.mk-ul path{fill:none;stroke:var(--naranja);stroke-width:5;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:var(--len,400);stroke-dashoffset:var(--len,400);
   transition:stroke-dashoffset .9s cubic-bezier(.65,0,.35,1)}
 .mk-ul.is-drawn path{stroke-dashoffset:0}
 html:not(.js) .mk-ul path{stroke-dashoffset:0}
 
-.mk-it,.mk-gr{opacity:0;transform:translateY(18%);
+.mk-gr{opacity:0;transform:translateY(18%) rotate(-3deg);
   transition:opacity .7s var(--ease),transform .7s var(--ease)}
-.mk-gr{transform:translateY(18%) rotate(-3deg)}
-.mk-it.is-in,.mk-gr.is-in{opacity:1;transform:none}
-html:not(.js) .mk-it,html:not(.js) .mk-gr{opacity:1;transform:none}
+.mk-gr.is-in{opacity:1;transform:none}
+html:not(.js) .mk-gr{opacity:1;transform:none}
 
 .mani-num{color:var(--rojo);font-size:15px;letter-spacing:.1em;margin-bottom:26px;position:relative;z-index:2}
 .mani-h{font-size:clamp(34px,5.6vw,82px);color:var(--rojo);max-width:15em;position:relative;z-index:2;margin-bottom:30px}
+
+
 .mani-h .jabin{font-style:normal;text-transform:none;font-size:1.14em;line-height:.7;vertical-align:-.06em;letter-spacing:0;display:inline-block;margin:0 .06em}
 .mani-p{font-size:clamp(17.5px,2vw,28px);line-height:1.42;max-width:31em;position:relative;z-index:2;font-weight:500}
 .mani-ghost{

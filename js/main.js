@@ -99,38 +99,103 @@
     return [...el.querySelectorAll('.w')];
   }
 
-  /* ---------- HAND-DRAWN UNDERLINES ---------- */
-  // Built in JS rather than hard-coded so each one gets its own wobble: a ruler-
-  // straight rule under display caps reads as a text-decoration, not as a mark
-  // someone made. Drawn on scroll via ScrollTrigger below.
-  function buildUnderlines() {
-    document.querySelectorAll('.mk-ul').forEach((el, i) => {
-      if (el.querySelector('svg')) return;
-      const seed = i * 37 + 11;
-      const rnd = n => ((Math.sin(seed * (n + 1)) + 1) / 2);        // deterministic
-      const W = 100, H = 12;
-      const y0 = 6 + (rnd(1) - 0.5) * 2.4;
-      const pts = [
-        `M 0 ${(y0 + 1.6).toFixed(2)}`,
-        `C ${18 + rnd(2) * 6} ${(y0 - 3 - rnd(3) * 1.6).toFixed(2)},` +
-        ` ${38 + rnd(4) * 8} ${(y0 + 3.4 + rnd(5) * 1.4).toFixed(2)},` +
-        ` ${58 + rnd(6) * 5} ${(y0 - 0.6).toFixed(2)}`,
-        `S ${84 + rnd(7) * 6} ${(y0 + 3.2 + rnd(8)).toFixed(2)}, ${W} ${(y0 - 1.4).toFixed(2)}`
-      ].join(' ');
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-      svg.setAttribute('preserveAspectRatio', 'none');
-      svg.setAttribute('aria-hidden', 'true');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', pts);
-      svg.appendChild(path);
-      el.appendChild(svg);
-      // only the length goes inline: setting dasharray/dashoffset here would beat
-      // the .is-drawn rule on specificity and the stroke would never draw
-      path.style.setProperty('--len', path.getTotalLength() || 120);
+  /* ---------- HAND-DRAWN MARKS ----------
+     Every mark is generated, never a fixed path: the wobble is what separates a
+     scrawl from a text-decoration. Each kind is a different gesture — a loop, a
+     crown, a swipe, a rule — so no two manifesto points get the same treatment. */
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function jitter(seed) { return n => Math.sin(seed * 12.9898 + n * 78.233) * 0.5 + 0.5; }
+
+  function mkSvg(el, vb, stretch, first) {
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('viewBox', vb);
+    if (stretch) svg.setAttribute('preserveAspectRatio', 'none');
+    svg.setAttribute('aria-hidden', 'true');
+    if (first) el.insertBefore(svg, el.firstChild); else el.appendChild(svg);
+    return svg;
+  }
+  function addPath(svg, d) {
+    const p = document.createElementNS(SVGNS, 'path');
+    p.setAttribute('d', d);
+    svg.appendChild(p);
+    return p;
+  }
+
+  /* With vector-effect:non-scaling-stroke the dash pattern is measured in SCREEN
+     pixels, while getTotalLength() reports viewBox units — feed it the raw length
+     and the stroke is cut short (this is what drew only half a crown). pathLength
+     doesn't fix it either, since the browser still dashes in screen space. So
+     convert through the path's own CTM, and redo it whenever the layout changes. */
+  function syncDash(p) {
+    const ctm = p.getScreenCTM();
+    let scale = 1;
+    if (ctm) {
+      // marks that stretch (preserveAspectRatio="none") scale unevenly, so take the
+      // LARGER axis: overestimating only delays the draw a hair, while
+      // underestimating leaves the stroke visibly cut short
+      const sx = Math.hypot(ctm.a, ctm.b), sy = Math.hypot(ctm.c, ctm.d);
+      scale = Math.max(sx, sy, 0.001);
+    }
+    p.style.setProperty('--len', Math.ceil((p.getTotalLength() || 200) * scale * 1.08) + 6);
+  }
+  function syncAllDashes() { document.querySelectorAll('.mk-ul path,.mk-circle path,.mk-crown path,.mk-hl path').forEach(syncDash); }
+
+  // a loop that overshoots where it started, the way a marker really closes
+  function circlePath(r) {
+    const cx = 50, cy = 50, rx = 47, ry = 41, steps = 46, sweep = Math.PI * 2 + 0.42;
+    let d = '';
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps, a = -Math.PI * 0.62 + sweep * t;
+      const wob = 1 + Math.sin(a * 3 + r(1) * 6) * 0.045 + Math.sin(a * 5 + r(2) * 9) * 0.022;
+      const x = cx + Math.cos(a) * rx * wob, y = cy + Math.sin(a) * ry * wob * (1 + t * 0.03);
+      d += (i ? ' L ' : 'M ') + x.toFixed(1) + ' ' + y.toFixed(1);
+    }
+    return d;
+  }
+  // three-point crown, drawn in one stroke
+  function crownPath(r) {
+    const j = n => (r(n) - 0.5) * 4;
+    // three even points: a taller middle spike just gets clipped by the line above
+    const j2 = n => (r(n) - 0.5) * 2.2;
+    return `M ${4 + j2(1)} ${28 + j2(2)} L ${17 + j2(3)} ${7 + j2(4)} L ${31 + j2(5)} ${20 + j2(6)}` +
+           ` L ${48 + j2(7)} ${6 + j2(8)} L ${65 + j2(9)} ${20 + j2(10)} L ${79 + j2(11)} ${7 + j2(12)}` +
+           ` L ${92 + j2(13)} ${28 + j2(14)}`;
+    }
+  // one broad pass of a marker
+  function swipePath(r) {
+    const y = 50 + (r(1) - 0.5) * 8;
+    return `M 3 ${y.toFixed(1)} C 30 ${(y - 6 - r(2) * 5).toFixed(1)}, 68 ${(y + 7 + r(3) * 4).toFixed(1)}, 97 ${(y - 2).toFixed(1)}`;
+  }
+  function rulePath(r) {
+    const y0 = 6 + (r(1) - 0.5) * 2.4;
+    return `M 0 ${(y0 + 1.6).toFixed(2)} C ${18 + r(2) * 6} ${(y0 - 3 - r(3) * 1.6).toFixed(2)},` +
+           ` ${38 + r(4) * 8} ${(y0 + 3.4 + r(5) * 1.4).toFixed(2)}, ${58 + r(6) * 5} ${(y0 - 0.6).toFixed(2)}` +
+           ` S ${84 + r(7) * 6} ${(y0 + 3.2 + r(8)).toFixed(2)}, 100 ${(y0 - 1.4).toFixed(2)}`;
+  }
+
+  function buildMarks() {
+    const kinds = [
+      ['.mk-ul', '0 0 100 12', true, rulePath],
+      ['.mk-circle', '0 0 100 100', true, circlePath],
+      ['.mk-crown', '0 0 96 32', false, crownPath],
+      ['.mk-hl', '0 0 100 100', true, swipePath]
+    ];
+    kinds.forEach(([sel, vb, stretch, fn]) => {
+      document.querySelectorAll(sel).forEach((el, i) => {
+        if (el.querySelector('svg')) return;
+        addPath(mkSvg(el, vb, stretch, sel === '.mk-crown'), fn(jitter(i * 7.3 + sel.length)));
+      });
     });
   }
-  buildUnderlines();
+  buildMarks();
+  syncAllDashes();
+  window.addEventListener('resize', syncAllDashes, { passive: true });
+  if (document.fonts) document.fonts.ready.then(syncAllDashes);
+  // the crown reaches into the line above; a touch of leading keeps it a mark over
+  // the words rather than a collision with them
+  document.querySelectorAll('.mk-crown').forEach(c => {
+    const h = c.closest('.mani-h'); if (h) h.classList.add('has-crown');
+  });
 
 
   dapperFix(document.body);
@@ -138,16 +203,16 @@
   document.querySelectorAll('[data-ilum]').forEach(el => { ilumSets.push({ el, words: splitWords(el) }); });
   document.querySelectorAll('.u-font').forEach(accentify);
 
-  /* Reveals the emphasis marks: italics and tags rise in, then the underline draws
+  /* Reveals the emphasis marks: the tag rises in, the drawn ones trace themselves
      a beat later so the stroke reads as a reaction to the words, not a decoration
      that was always there.
      Measured directly instead of via IntersectionObserver — the IO has already
      proven unreliable here (it is what silently froze the carousel), and a mark
      that never appears is worse than one that appears a frame late. */
   (function watchMarks() {
-    let marks = [...document.querySelectorAll('.mk-ul, .mk-it, .mk-gr')];
+    let marks = [...document.querySelectorAll('.mk-ul, .mk-circle, .mk-crown, .mk-hl, .mk-gr')];
     if (!marks.length) return;
-    const light = el => el.classList.add(el.classList.contains('mk-ul') ? 'is-drawn' : 'is-in');
+    const light = el => el.classList.add(el.classList.contains('mk-gr') ? 'is-in' : 'is-drawn');
     if (reduced) { marks.forEach(light); return; }
     let poll = null;
     function check() {
@@ -155,7 +220,7 @@
       marks = marks.filter(el => {
         const r = el.getBoundingClientRect();
         if (r.top >= vh * 0.86 || r.bottom <= 0) return true;   // not in view yet
-        setTimeout(() => light(el), el.classList.contains('mk-ul') ? 240 : 60);
+        setTimeout(() => light(el), el.classList.contains('mk-gr') ? 60 : 240);
         return false;
       });
       if (!marks.length && poll) { clearInterval(poll); poll = null; }

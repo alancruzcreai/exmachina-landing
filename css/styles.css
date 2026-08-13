@@ -117,7 +117,7 @@ ul,ol{list-style:none}
 .hero-slide picture{display:block;width:100%;height:100%;overflow:hidden;
   transform:translate3d(var(--px,0px),var(--py,0px),0) scale(1.022)}
 .hero-slide img{width:100%;height:100%;object-fit:cover;object-position:center 45%}
-.hero-slide.is-active img{animation:kenburns 6.6s cubic-bezier(.25,.6,.35,1) forwards}
+.hero.is-live .hero-slide.is-active img{animation:kenburns 6.6s cubic-bezier(.25,.6,.35,1) forwards}
 @keyframes kenburns{from{transform:scale(1.042) translate3d(.35%,0,0)}to{transform:scale(1.0) translate3d(0,0,0)}}
 /* The chrome lettering was lifted off the photos (it was the same asset composited
    on all four), so it lives on its own layer and drifts further than the frame
@@ -149,9 +149,9 @@ ul,ol{list-style:none}
    and the crossfade can never drift apart, and pausing one pauses both. */
 .dot-fill{position:absolute;inset:0;background:var(--naranja);border-radius:inherit;
   transform:scaleX(0);transform-origin:left center}
-.dot.is-active .dot-fill{animation:dotFill var(--hold,6000ms) linear forwards}
+.hero.is-live .dot.is-active .dot-fill{animation:dotFill var(--hold,4000ms) linear forwards}
 @keyframes dotFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-.hero.is-paused .dot-fill,.hero.is-paused .hero-slide.is-active img{animation-play-state:paused}
+
 
 /* ---------- INTRO ---------- */
 .intro{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(40px,6vw,96px);align-items:center;padding:clamp(84px,10vw,150px) 0}

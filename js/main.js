@@ -12,6 +12,9 @@
     if (loaderDone) return; loaderDone = true;
     loader.classList.add('is-done');
     setTimeout(() => loader.remove(), 900);
+    // the hero only starts counting once it is actually on screen, so the first
+    // slide gets its full time and the progress bar starts from zero in view
+    document.dispatchEvent(new CustomEvent('exm:herolive'));
   }
   Promise.race([
     Promise.all([document.fonts ? document.fonts.ready : Promise.resolve(),
@@ -128,8 +131,8 @@
   const dots = [...document.querySelectorAll('.hero-dots .dot')];
   const fills = dots.map(d => d.querySelector('.dot-fill'));
   const FADE = 950;           // must match the CSS crossfade
-  const HOLD = 4000, HOLD_MANUAL = 5200;
-  let cur = 0, holdMs = HOLD, timerId = null, startedAt = 0, remaining = HOLD, isPaused = false;
+  const HOLD = 4000;          // one rhythm for auto and manual — predictable
+  let cur = 0, timerId = null, live = false;
 
   // decode the next image ahead of time so the crossfade never waits on network
   function preload(i) {
@@ -137,88 +140,56 @@
     if (img && !img.complete) { img.loading = 'eager'; img.fetchPriority = 'low'; }
   }
 
-  function goTo(i, userInitiated) {
-    const next = (i + slides.length) % slides.length;
-    // re-scheduling even on a no-op matters: clicking the active dot used to
-    // return here and leave the carousel with no timer at all
-    if (next === cur) { schedule(userInitiated ? HOLD_MANUAL : holdMs); return; }
-    const outgoing = slides[cur];
-    outgoing.classList.remove('is-active');
-    outgoing.classList.add('is-leaving');
-    setTimeout(() => outgoing.classList.remove('is-leaving'), FADE);
-    cur = next;
-    const s = slides[cur];
-    s.classList.add('is-active');
-    // restart the ken-burns so every slide gets the full drift, not a partial one
-    const img = s.querySelector('img');
-    if (img && !reduced) { img.style.animation = 'none'; void img.offsetWidth; img.style.animation = ''; }
-    dots.forEach((d, k) => {
-      d.classList.toggle('is-active', k === cur);
-      d.setAttribute('aria-selected', k === cur ? 'true' : 'false');
-    });
-    // a manual pick holds a little longer so the choice is actually seen
-    holdMs = userInitiated ? HOLD_MANUAL : HOLD;
-    hero.style.setProperty('--hold', holdMs + 'ms');
-    const f = fills[cur];
-    if (f && !reduced) { f.style.animation = 'none'; void f.offsetWidth; f.style.animation = ''; }
-    preload(cur + 1);
-    schedule(holdMs);
+  function restart(el) {                       // replay a CSS animation from 0
+    if (!el || reduced) return;
+    el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
   }
 
-  /* One timer, one paused flag, one place that schedules. The earlier version let
-     a click while hovering arm a second timer alongside the paused one, which is
-     how the carousel ended up sometimes running, sometimes dead.
-     Reduced-motion still advances: that setting asks us to drop vestibular motion
-     (parallax, zoom, drift), not a plain opacity dissolve. */
+  function goTo(i) {
+    const next = (i + slides.length) % slides.length;
+    if (next !== cur) {
+      const outgoing = slides[cur];
+      outgoing.classList.remove('is-active');
+      outgoing.classList.add('is-leaving');
+      setTimeout(() => outgoing.classList.remove('is-leaving'), FADE);
+      cur = next;
+      slides[cur].classList.add('is-active');
+      restart(slides[cur].querySelector('img'));   // full ken-burns per slide
+      dots.forEach((d, k) => {
+        d.classList.toggle('is-active', k === cur);
+        d.setAttribute('aria-selected', k === cur ? 'true' : 'false');
+      });
+    }
+    restart(fills[cur]);                           // progress bar back to zero
+    preload(cur + 1);
+    schedule(HOLD);                                // always leaves a live timer
+  }
+
+  /* The carousel never pauses. Hover-to-pause is wrong for a full-bleed hero: the
+     cursor is over it the whole time a visitor is reading, so the thing sat frozen
+     and only moved when the mouse left the window. One timer, one schedule().
+     Not gated on document.hidden either — some contexts report hidden while
+     perfectly visible, and browsers already throttle background timers. */
   function clearTimer() { if (timerId) { clearTimeout(timerId); timerId = null; } }
-  // deliberately NOT gated on document.hidden: browsers already throttle timers in
-  // background tabs, and some contexts report hidden while perfectly visible —
-  // gating on it is a way to never start at all
   function schedule(ms) {
     clearTimer();
-    remaining = ms;
-    startedAt = Date.now();
-    if (!isPaused) timerId = setTimeout(tick, ms);
+    if (live) timerId = setTimeout(tick, ms);
   }
   function tick() { timerId = null; goTo(cur + 1); }
-  function pauseClock() {
-    if (isPaused) return;
-    isPaused = true;
-    if (timerId) remaining = Math.max(400, remaining - (Date.now() - startedAt));
-    clearTimer();
-  }
-  function resumeClock() {
-    if (!isPaused) return;
-    isPaused = false;
-    clearTimer();
-    startedAt = Date.now();
-    timerId = setTimeout(tick, remaining);
-  }
 
   fills.forEach((f, k) => f.addEventListener('animationend', e => {
-    if (e.animationName === 'dotFill' && k === cur && !isPaused) goTo(cur + 1);
+    if (e.animationName === 'dotFill' && k === cur && live) goTo(cur + 1);
   }));
 
-  dots.forEach((d, k) => d.addEventListener('click', () => goTo(k, true)));
-  // Hovering means the user is looking — don't yank the image away mid-read.
-  // Mouse-only: on touch, pointerenter fires on tap and pointerleave often never
-  // arrives, which would freeze the carousel for good.
-  if (window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
-    hero.addEventListener('mouseenter', () => { hero.classList.add('is-paused'); pauseClock(); });
-    hero.addEventListener('mouseleave', () => { hero.classList.remove('is-paused'); resumeClock(); });
-  }
-  // a backgrounded tab throttles timers; restart cleanly instead of jumping slides
-  // coming back to the tab restarts the current slide's full hold instead of
-  // firing immediately on the time that elapsed while away
+  dots.forEach((d, k) => d.addEventListener('click', () => goTo(k)));
+  // returning to the tab gives the current slide a fresh full hold instead of
+  // firing instantly on the time that passed while away
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && !isPaused) schedule(holdMs);
+    if (!document.hidden && live) { restart(fills[cur]); schedule(HOLD); }
   });
-  // Belt and braces: whatever combination of hover, tab switches, clicks or a
-  // dropped animation event leaves it without a timer, this puts one back. Cheap,
-  // and it makes "sometimes it stops" impossible rather than unlikely.
-  setInterval(() => {
-    if (!isPaused && !timerId) schedule(holdMs);
-  }, 1500);
+  // Belt and braces: if any combination of clicks, tab switches or a dropped
+  // animation event ever leaves it without a timer, this puts one back.
+  setInterval(() => { if (live && !timerId) schedule(HOLD); }, 1200);
 
   // arrow keys while a dot has focus — the standard tablist interaction
   document.querySelector('.hero-dots').addEventListener('keydown', e => {
@@ -227,7 +198,7 @@
     if (e.key === 'ArrowLeft') n = cur - 1;
     if (n === null) return;
     e.preventDefault();
-    goTo(n, true);
+    goTo(n);
     dots[(n + dots.length) % dots.length].focus();
   });
   let sx = null;
@@ -235,12 +206,24 @@
   hero.addEventListener('pointerup', e => {
     if (sx === null) return;
     const dx = e.clientX - sx; sx = null;
-    if (Math.abs(dx) > 45) goTo(cur + (dx < 0 ? 1 : -1), true);
+    if (Math.abs(dx) > 45) goTo(cur + (dx < 0 ? 1 : -1));
   }, { passive: true });
 
   preload(1);
   hero.style.setProperty('--hold', HOLD + 'ms');
-  schedule(HOLD);
+
+  // Go live only once the intro clears, so the first slide is seen from its start
+  // and the bar visibly fills from zero — that is the cue that it is progressing.
+  function goLive() {
+    if (live) return;
+    live = true;
+    hero.classList.add('is-live');
+    restart(fills[cur]);
+    restart(slides[cur].querySelector('img'));
+    schedule(HOLD);
+  }
+  document.addEventListener('exm:herolive', goLive, { once: true });
+  setTimeout(goLive, 3600);   // fallback: never depend on that one event
 
   /* ---------- HERO PARALLAX (mouse + scroll) ---------- */
   // The chrome lettering is baked into each photo, so the whole frame drifts —

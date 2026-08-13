@@ -127,8 +127,8 @@
   const slides = [...document.querySelectorAll('.hero-slide')];
   const dots = [...document.querySelectorAll('.hero-dots .dot')];
   const fills = dots.map(d => d.querySelector('.dot-fill'));
-  const FADE = 1100;          // must match the CSS crossfade
-  const HOLD = 5200, HOLD_MANUAL = 6400;
+  const FADE = 950;           // must match the CSS crossfade
+  const HOLD = 4000, HOLD_MANUAL = 5200;
   let cur = 0, holdMs = HOLD, timerId = null, startedAt = 0, remaining = HOLD, isPaused = false;
 
   // decode the next image ahead of time so the crossfade never waits on network
@@ -233,12 +233,16 @@
   // enough to feel alive, small enough that it never reads as a moving image.
   if (!reduced) {
     let tx = 0, ty = 0, cx = 0, cy = 0, praf = null;
-    const MAX_X = 18, MAX_Y = 12;
+    // the photo drifts a little, the lettering noticeably more: same cursor, two
+    // depths. Opposed signs make the gap read stronger without moving either far.
+    const BG_X = 14, BG_Y = 9, LT_X = -34, LT_Y = -22;
     function ease() {
-      cx += (tx - cx) * 0.075;
-      cy += (ty - cy) * 0.075;
-      hero.style.setProperty('--px', (cx * MAX_X).toFixed(2) + 'px');
-      hero.style.setProperty('--py', (cy * MAX_Y).toFixed(2) + 'px');
+      cx += (tx - cx) * 0.08;
+      cy += (ty - cy) * 0.08;
+      hero.style.setProperty('--px', (cx * BG_X).toFixed(2) + 'px');
+      hero.style.setProperty('--py', (cy * BG_Y).toFixed(2) + 'px');
+      hero.style.setProperty('--lx', (cx * LT_X).toFixed(2) + 'px');
+      hero.style.setProperty('--ly', (cy * LT_Y).toFixed(2) + 'px');
       praf = (Math.abs(tx - cx) > 0.0015 || Math.abs(ty - cy) > 0.0015)
         ? requestAnimationFrame(ease) : null;
     }
@@ -362,8 +366,14 @@
     // scroll parallax — this is what keeps the hero alive on touch, where the
     // pointer drift never happens
     gsap.to('.hero-slides', {
-      yPercent: 14, ease: 'none',
+      yPercent: 13, ease: 'none',
       scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.4 }
+    });
+    // lettering climbs faster than the photo — the depth cue that works on touch,
+    // where there is no cursor to drive the drift
+    gsap.to('.hero-letter', {
+      yPercent: -22, scale: 1.06, ease: 'none',
+      scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.25 }
     });
     gsap.to('.hero-dots', {
       opacity: 0, y: 20, ease: 'none',

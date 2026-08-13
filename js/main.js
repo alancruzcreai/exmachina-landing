@@ -125,18 +125,46 @@
       path.setAttribute('d', pts);
       svg.appendChild(path);
       el.appendChild(svg);
-      const len = path.getTotalLength() || 120;
-      path.style.setProperty('--len', len);
-      path.style.strokeDasharray = len;
-      path.style.strokeDashoffset = reduced ? 0 : len;
+      // only the length goes inline: setting dasharray/dashoffset here would beat
+      // the .is-drawn rule on specificity and the stroke would never draw
+      path.style.setProperty('--len', path.getTotalLength() || 120);
     });
   }
   buildUnderlines();
+
 
   dapperFix(document.body);
   const ilumSets = [];
   document.querySelectorAll('[data-ilum]').forEach(el => { ilumSets.push({ el, words: splitWords(el) }); });
   document.querySelectorAll('.u-font').forEach(accentify);
+
+  /* Reveals the emphasis marks: italics and tags rise in, then the underline draws
+     a beat later so the stroke reads as a reaction to the words, not a decoration
+     that was always there.
+     Measured directly instead of via IntersectionObserver — the IO has already
+     proven unreliable here (it is what silently froze the carousel), and a mark
+     that never appears is worse than one that appears a frame late. */
+  (function watchMarks() {
+    let marks = [...document.querySelectorAll('.mk-ul, .mk-it, .mk-gr')];
+    if (!marks.length) return;
+    const light = el => el.classList.add(el.classList.contains('mk-ul') ? 'is-drawn' : 'is-in');
+    if (reduced) { marks.forEach(light); return; }
+    let poll = null;
+    function check() {
+      const vh = document.documentElement.clientHeight || window.innerHeight || 800;
+      marks = marks.filter(el => {
+        const r = el.getBoundingClientRect();
+        if (r.top >= vh * 0.86 || r.bottom <= 0) return true;   // not in view yet
+        setTimeout(() => light(el), el.classList.contains('mk-ul') ? 240 : 60);
+        return false;
+      });
+      if (!marks.length && poll) { clearInterval(poll); poll = null; }
+    }
+    window.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check, { passive: true });
+    poll = setInterval(check, 250);   // also covers smooth-scroll and layout shifts
+    check();
+  })();
 
   /* ---------- MARQUEE ---------- */
   const LOGOS = [
@@ -378,23 +406,6 @@
       gsap.fromTo(words, { opacity: 0.13 }, {
         opacity: 1, ease: 'none', stagger: 0.045,
         scrollTrigger: { trigger: el, start: 'top 84%', end: 'top 32%', scrub: 0.6 }
-      });
-    });
-
-    // underlines draw themselves as the line arrives, just after its words light up
-    document.querySelectorAll('.mk-ul path').forEach(path => {
-      gsap.to(path, {
-        strokeDashoffset: 0, duration: .85, ease: 'power2.inOut',
-        scrollTrigger: { trigger: path.closest('.mani-h') || path, start: 'top 70%', once: true }
-      });
-    });
-    // italics and tags settle in with a small skew/rise — enough to register as
-    // deliberate emphasis without turning into a separate animation
-    document.querySelectorAll('.mk-it, .mk-gr').forEach(el => {
-      gsap.from(el, {
-        yPercent: 22, opacity: 0, rotate: el.classList.contains('mk-gr') ? -3.5 : 0,
-        duration: .8, ease: 'power3.out',
-        scrollTrigger: { trigger: el.closest('.mani-h') || el, start: 'top 78%', once: true }
       });
     });
 

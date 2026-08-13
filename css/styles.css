@@ -243,9 +243,20 @@ ul,ol{list-style:none}
 /* sits clear of the baseline: any closer and the stroke reads as a strikethrough
    across the descenders instead of a mark under the line */
 .mk-ul svg{position:absolute;left:-1.5%;bottom:-.16em;width:103%;height:.26em;overflow:visible;pointer-events:none}
+/* drawn by a plain CSS transition toggled from an IntersectionObserver: fewer
+   moving parts than routing it through ScrollTrigger, and it can't be starved by
+   the other triggers already bound to these headings */
 .mk-ul path{fill:none;stroke:var(--naranja);stroke-width:8;stroke-linecap:round;stroke-linejoin:round;
-  stroke-dasharray:var(--len,600);stroke-dashoffset:var(--len,600)}
-.no-js .mk-ul path,html:not(.js) .mk-ul path{stroke-dashoffset:0}
+  stroke-dasharray:var(--len,600);stroke-dashoffset:var(--len,600);
+  transition:stroke-dashoffset .9s cubic-bezier(.65,0,.35,1)}
+.mk-ul.is-drawn path{stroke-dashoffset:0}
+html:not(.js) .mk-ul path{stroke-dashoffset:0}
+
+.mk-it,.mk-gr{opacity:0;transform:translateY(18%);
+  transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.mk-gr{transform:translateY(18%) rotate(-3deg)}
+.mk-it.is-in,.mk-gr.is-in{opacity:1;transform:none}
+html:not(.js) .mk-it,html:not(.js) .mk-gr{opacity:1;transform:none}
 
 .mani-num{color:var(--rojo);font-size:15px;letter-spacing:.1em;margin-bottom:26px;position:relative;z-index:2}
 .mani-h{font-size:clamp(34px,5.6vw,82px);color:var(--rojo);max-width:15em;position:relative;z-index:2;margin-bottom:30px}

@@ -139,7 +139,9 @@
 
   function goTo(i, userInitiated) {
     const next = (i + slides.length) % slides.length;
-    if (next === cur) return;
+    // re-scheduling even on a no-op matters: clicking the active dot used to
+    // return here and leave the carousel with no timer at all
+    if (next === cur) { schedule(userInitiated ? HOLD_MANUAL : holdMs); return; }
     const outgoing = slides[cur];
     outgoing.classList.remove('is-active');
     outgoing.classList.add('is-leaving');
@@ -160,32 +162,37 @@
     const f = fills[cur];
     if (f && !reduced) { f.style.animation = 'none'; void f.offsetWidth; f.style.animation = ''; }
     preload(cur + 1);
-    arm(holdMs);
+    schedule(holdMs);
   }
 
-  /* The bar is the visible clock, but a timer is the authority: on mobile the
-     animationend can be throttled or dropped and the carousel would just stop.
-     Whichever fires first advances; arm() cancels the other. */
-  // Reduced-motion still advances: what that setting asks us to drop is vestibular
-  // movement (parallax, zoom, drift), not a plain opacity dissolve. Killing the
-  // autoplay outright would leave those users staring at a single frozen frame.
-  function arm(ms) {
-    clearTimeout(timerId);
+  /* One timer, one paused flag, one place that schedules. The earlier version let
+     a click while hovering arm a second timer alongside the paused one, which is
+     how the carousel ended up sometimes running, sometimes dead.
+     Reduced-motion still advances: that setting asks us to drop vestibular motion
+     (parallax, zoom, drift), not a plain opacity dissolve. */
+  function clearTimer() { if (timerId) { clearTimeout(timerId); timerId = null; } }
+  // deliberately NOT gated on document.hidden: browsers already throttle timers in
+  // background tabs, and some contexts report hidden while perfectly visible —
+  // gating on it is a way to never start at all
+  function schedule(ms) {
+    clearTimer();
     remaining = ms;
     startedAt = Date.now();
-    timerId = setTimeout(() => goTo(cur + 1), ms);
+    if (!isPaused) timerId = setTimeout(tick, ms);
   }
+  function tick() { timerId = null; goTo(cur + 1); }
   function pauseClock() {
     if (isPaused) return;
     isPaused = true;
-    clearTimeout(timerId);
-    remaining = Math.max(400, remaining - (Date.now() - startedAt));
+    if (timerId) remaining = Math.max(400, remaining - (Date.now() - startedAt));
+    clearTimer();
   }
   function resumeClock() {
     if (!isPaused) return;
     isPaused = false;
+    clearTimer();
     startedAt = Date.now();
-    timerId = setTimeout(() => goTo(cur + 1), remaining);
+    timerId = setTimeout(tick, remaining);
   }
 
   fills.forEach((f, k) => f.addEventListener('animationend', e => {
@@ -201,10 +208,17 @@
     hero.addEventListener('mouseleave', () => { hero.classList.remove('is-paused'); resumeClock(); });
   }
   // a backgrounded tab throttles timers; restart cleanly instead of jumping slides
+  // coming back to the tab restarts the current slide's full hold instead of
+  // firing immediately on the time that elapsed while away
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) pauseClock();
-    else { resumeClock(); if (!isPaused && !timerId) arm(holdMs); }
+    if (!document.hidden && !isPaused) schedule(holdMs);
   });
+  // Belt and braces: whatever combination of hover, tab switches, clicks or a
+  // dropped animation event leaves it without a timer, this puts one back. Cheap,
+  // and it makes "sometimes it stops" impossible rather than unlikely.
+  setInterval(() => {
+    if (!isPaused && !timerId) schedule(holdMs);
+  }, 1500);
 
   // arrow keys while a dot has focus — the standard tablist interaction
   document.querySelector('.hero-dots').addEventListener('keydown', e => {
@@ -226,7 +240,7 @@
 
   preload(1);
   hero.style.setProperty('--hold', HOLD + 'ms');
-  arm(HOLD);
+  schedule(HOLD);
 
   /* ---------- HERO PARALLAX (mouse + scroll) ---------- */
   // The chrome lettering is baked into each photo, so the whole frame drifts —

@@ -98,7 +98,7 @@ ul,ol{list-style:none}
 .pill-link.is-active{background:var(--naranja);border-color:var(--naranja);color:var(--blanco)}
 
 /* ---------- HERO ---------- */
-.hero{position:relative;height:min(100svh,calc(100vw / 1.70));min-height:520px;background:var(--tinta);overflow:hidden}
+.hero{position:relative;height:100svh;min-height:540px;background:var(--tinta);overflow:hidden}
 .hero-slides{position:absolute;inset:0}
 /* Crossfade: the outgoing frame keeps drifting while the incoming one settles, so
    the change never reads as a cut. will-change is set only on the two slides in
@@ -123,11 +123,11 @@ ul,ol{list-style:none}
    on all four), so it lives on its own layer and drifts further than the frame
    behind it — that difference is what reads as depth. */
 .hero-letter{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
-/* The artwork is clipped at both edges, so scaling below 1 drags those cuts into
-   frame as sliced letters. Just over 1 parks them outside the viewport, and the
-   readable size comes from the hero's aspect instead. */
+/* Full-bleed hero, exactly like the mockup: cover crops the sides, and because the
+   lettering shares that cover its clipped edges land outside the viewport instead
+   of showing as sliced letters. 1.03 keeps a margin for the drift. */
 .hero-letter picture{display:block;width:100%;height:100%;
-  transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1.05)}
+  transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1.03)}
 /* identical geometry + identical object-fit as the photo: that is what makes the
    layer land exactly on the hole it was lifted from */
 .hero-letter img{width:100%;height:100%;object-fit:cover;object-position:center 45%;

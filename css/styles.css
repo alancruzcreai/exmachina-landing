@@ -232,20 +232,27 @@ ul,ol{list-style:none}
 .dock-menu:hover{opacity:.6}
 .dock-menu-dots{display:flex;gap:3px}
 .dock-menu-dots span{width:3px;height:3px;border-radius:50%;background:currentColor}
+/* the bar-sized version of the toggle; the bare dots stay on desktop, under MENU */
+.dock-menu-icon{display:none}
+.dock-menu-icon svg{width:100%;height:100%;display:block}
 
 @media (max-width:767px){
   /* On mobile the reference hides its MENU entirely, which would strand the whole
      flyout — here it becomes one more item in the bar, keeping the three dots. */
-  /* justify-content, no align-items: en una columna flex `center` alinea en
-     horizontal, y el eje vertical sigue apilando desde arriba. En escritorio da
-     igual porque el boton se ajusta a su contenido; aqui lo forzamos a 57x57 y los
-     puntos se quedaban 26px por encima de los otros tres iconos. */
+  /* justify-content, not align-items: in a flex column `center` aligns across the
+     horizontal axis and the vertical one keeps packing from the top. On desktop it
+     never showed because the button hugs its content; here it is forced to 57x57. */
   .dock-menu{display:flex;position:static;width:57px;height:57px;padding:0;
-    justify-content:center;
+    align-items:center;justify-content:center;
     gap:0;min-width:0;font-size:0;opacity:1;animation:none;text-shadow:none}
-  .dock-menu-dots{gap:4px}
-  .dock-menu-dots span{width:4px;height:4px;background:rgba(255,255,255,.62)}
-  .dock-menu[aria-expanded="true"] .dock-menu-dots span{background:var(--naranja)}
+  /* Bare dots are 4px of ink beside three 23px filled glyphs — a fifth of their
+     weight, which reads as a stray mark rather than the fourth button, however
+     precisely it is centred. In the bar the toggle takes an icon of the same family
+     instead: a filled rounded square with the three dots knocked out of it. */
+  .dock-menu-dots{display:none}
+  .dock-menu-icon{display:block;width:23px;height:23px;color:rgba(255,255,255,.62);
+    transition:color .32s var(--dock-ease)}
+  .dock-menu[aria-expanded="true"] .dock-menu-icon{color:var(--naranja)}
   /* the rail becomes a floating glass bar, the labels give way to a dot */
   .dock{
     left:50%;right:auto;top:auto;bottom:calc(22px + env(safe-area-inset-bottom));

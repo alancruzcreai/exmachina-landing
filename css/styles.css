@@ -529,7 +529,11 @@ html:not(.js) .mk-gr{opacity:1;transform:none}
   padding:clamp(26px,4vw,64px);display:flex;flex-direction:column;gap:clamp(56px,7vw,110px);
 }
 .member{display:grid;grid-template-columns:minmax(260px,460px) 1fr;gap:clamp(26px,5vw,80px);align-items:center}
-.member-ph{border-radius:16px;overflow:hidden;aspect-ratio:1090/1322;background:#12131E}
+/* the canvas redraws the photo as glyphs; the <img> stays underneath as the
+   no-JS fallback and as the luminance source */
+.member-ph{border-radius:16px;overflow:hidden;aspect-ratio:1090/1322;background:#12131E;position:relative;cursor:crosshair}
+.ascii-cv{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;pointer-events:none}
+.member-ph:has(.ascii-cv) img{opacity:0}
 .member-ph--clawd{background:#EDEBE4}
 .member-ph img{width:100%;height:100%;object-fit:cover}
 .member-txt{text-align:right;color:var(--naranja);display:flex;flex-direction:column;align-items:flex-end}

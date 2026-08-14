@@ -585,3 +585,134 @@
   // safety: never leave content hidden
   setTimeout(() => { if (!window.__animOK) doc.classList.add('anim-ready'); }, 3000);
 })();
+
+/* ================= ASCII PHOTO — CURSOR TORCH =================
+   Reproduces the effect from the reference clip: the team photos are drawn as a
+   grid of monospaced glyphs whose weight follows the image's luminance, and the
+   pointer acts as a torch — glyphs near it climb the ramp (denser, brighter,
+   larger) and fall back to faint dots with distance. Canvas 2D, like the original
+   (its author confirmed no WebGL). Progressive enhancement: without JS the plain
+   photo stays. */
+(function asciiPhotos() {
+  'use strict';
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const RAMP = ' .·:;=+itfwWM#%@';          // low → high density
+  const CELL = 7;                            // glyph cell in CSS px
+  const RADIUS = 0.34;                       // torch radius, share of the short side
+  const BOOST = 1.85;                        // how much the torch lifts the ramp
+  const EASE = 0.16;                         // pointer follow
+  const targets = document.querySelectorAll('.member-ph');
+  if (!targets.length || !document.createElement('canvas').getContext) return;
+
+  targets.forEach(fig => {
+    const img = fig.querySelector('img');
+    if (!img) return;
+
+    const cv = document.createElement('canvas');
+    cv.className = 'ascii-cv';
+    cv.setAttribute('aria-hidden', 'true');
+    fig.appendChild(cv);
+    const ctx = cv.getContext('2d', { alpha: true });
+
+    let cols = 0, rows = 0, lum = null, dpr = 1, W = 0, H = 0;
+    let px = -9999, py = -9999, tx = -9999, ty = -9999;
+    let raf = null, idleFrames = 0;
+
+    function sample() {
+      const r = fig.getBoundingClientRect();
+      if (!r.width || !r.height || !img.naturalWidth) return false;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = Math.round(r.width); H = Math.round(r.height);
+      cv.width = W * dpr; cv.height = H * dpr;
+      cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      cols = Math.ceil(W / CELL); rows = Math.ceil(H / CELL);
+
+      // read the source once into a luminance grid
+      const off = document.createElement('canvas');
+      off.width = cols; off.height = rows;
+      const octx = off.getContext('2d', { willReadFrequently: true });
+      // cover-fit the source into the grid, matching the CSS object-fit
+      const sr = img.naturalWidth / img.naturalHeight, dr = cols / rows;
+      let sw = img.naturalWidth, sh = img.naturalHeight, sx = 0, sy = 0;
+      if (sr > dr) { sw = img.naturalHeight * dr; sx = (img.naturalWidth - sw) / 2; }
+      else { sh = img.naturalWidth / dr; sy = (img.naturalHeight - sh) / 2; }
+      octx.drawImage(img, sx, sy, sw, sh, 0, 0, cols, rows);
+      const d = octx.getImageData(0, 0, cols, rows).data;
+      lum = new Float32Array(cols * rows);
+      for (let i = 0, p = 0; i < lum.length; i++, p += 4) {
+        const l = (0.2126 * d[p] + 0.7152 * d[p + 1] + 0.0722 * d[p + 2]) / 255;
+        // gentle lift so the portrait still reads with no pointer on it — on touch
+        // there is no hover at all and the grid would be almost blank otherwise
+        lum[i] = Math.pow(l, 0.78);
+      }
+      return true;
+    }
+
+    function draw() {
+      if (!lum) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center';
+      const rad = Math.min(W, H) * RADIUS;
+      const rad2 = rad * rad;
+      for (let y = 0; y < rows; y++) {
+        const cy = y * CELL + CELL / 2;
+        for (let x = 0; x < cols; x++) {
+          const cx = x * CELL + CELL / 2;
+          let v = lum[y * cols + x];
+          const dx = cx - px, dy = cy - py;
+          const d2 = dx * dx + dy * dy;
+          let t = 0;
+          if (d2 < rad2) { t = 1 - Math.sqrt(d2) / rad; t = t * t * (3 - 2 * t); }
+          v = Math.min(1, v * (1 + BOOST * t) + t * 0.14);
+          if (v < 0.06) continue;
+          const ch = RAMP[Math.min(RAMP.length - 1, Math.round(v * (RAMP.length - 1)))];
+          if (ch === ' ') continue;
+          const size = CELL * (0.82 + 0.5 * t);
+          ctx.font = '700 ' + size.toFixed(1) + 'px "NeurealMono", ui-monospace, monospace';
+          ctx.fillStyle = 'rgba(255,255,255,' + (0.22 + 0.78 * v).toFixed(3) + ')';
+          ctx.fillText(ch, cx, cy);
+        }
+      }
+    }
+
+    function loop() {
+      px += (tx - px) * EASE;
+      py += (ty - py) * EASE;
+      draw();
+      const moving = Math.abs(tx - px) > 0.4 || Math.abs(ty - py) > 0.4;
+      idleFrames = moving ? 0 : idleFrames + 1;
+      raf = idleFrames > 20 ? (raf = null) : requestAnimationFrame(loop);
+    }
+    function kick() {
+      if (reduced) { draw(); return; }
+      if (!raf) { draw(); raf = requestAnimationFrame(loop); }   // paint now, then ease
+    }
+
+    function aim(e) {
+      const r = fig.getBoundingClientRect();
+      if (!r.width) return;
+      tx = e.clientX - r.left; ty = e.clientY - r.top;
+      if (px < -999) { px = tx; py = ty; }
+      kick();
+    }
+    function leave() { tx = -9999; ty = -9999; kick(); }
+
+    fig.addEventListener('pointermove', aim, { passive: true });
+    fig.addEventListener('pointerleave', leave, { passive: true });
+    // touch: the torch follows the finger while it is down
+    fig.addEventListener('touchmove', e => {
+      const t = e.touches[0]; if (t) aim(t);
+    }, { passive: true });
+    fig.addEventListener('touchend', leave, { passive: true });
+
+    function init() { if (sample()) { draw(); } }
+    if (img.complete && img.naturalWidth) init();
+    else img.addEventListener('load', init, { once: true });
+    let rt = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(rt); rt = setTimeout(() => { if (sample()) draw(); }, 180);
+    }, { passive: true });
+  });
+})();

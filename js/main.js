@@ -261,6 +261,21 @@
   const HOLD = 4000;          // one rhythm for auto and manual — predictable
   let cur = 0, timerId = null, live = false;
 
+  /* On phones the frame is fitted whole instead of cropped, and the space left over
+     is filled with a blurred copy of that same slide. CSS cannot know which source
+     the <picture> ended up choosing, so hand it the resolved URL. */
+  function paintBackdrop(fig) {
+    const img = fig.querySelector('img');
+    const src = img && (img.currentSrc || img.src);
+    if (src) fig.style.setProperty('--bg', 'url("' + src.replace(/"/g, '\\"') + '")');
+  }
+  slides.forEach(fig => {
+    const img = fig.querySelector('img');
+    if (!img) return;
+    if (img.complete && img.naturalWidth) paintBackdrop(fig);
+    else img.addEventListener('load', () => paintBackdrop(fig), { once: true });
+  });
+
   // decode the next image ahead of time so the crossfade never waits on network
   function preload(i) {
     const img = slides[(i + slides.length) % slides.length].querySelector('img');

@@ -253,6 +253,15 @@ ul,ol{list-style:none}
   @keyframes dockInM{from{opacity:0;transform:translateX(-50%) translateY(14px)}to{opacity:1;transform:translateX(-50%)}}
   .dock-link{width:57px;background:none;border:0;backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:0}
   .dock-link.is-active{background:none}
+  /* The light-section inversion is for the desktop rail, which sits directly on the
+     page. On mobile the bar carries its own dark glass whatever is behind it, so
+     that inversion has to be switched off here — it outranks the rules above and
+     was repainting the active button as a solid orange plate, which is why the
+     first item looked nothing like the other two. */
+  .dock.on-light .dock-link,
+  .dock.on-light .dock-link.is-active{background:none;border-color:transparent}
+  .dock.on-light .dock-icon{color:rgba(255,255,255,.62)}
+  .dock.on-light .dock-link.is-active .dock-icon{color:var(--naranja)}
   .dock-tag{display:none}
   .dock-dot{
     display:block;position:absolute;left:50%;bottom:9px;width:4px;height:4px;border-radius:50%;
@@ -401,7 +410,13 @@ ul,ol{list-style:none}
    where any of this would cost legibility) ---- */
 /* circled word: the loop overshoots its start, the way a marker actually closes */
 .mk-circle{position:relative;display:inline-block;padding:0 .2em}
-.mk-circle svg{position:absolute;left:-11%;top:-34%;width:123%;height:170%;overflow:visible;pointer-events:none}
+/* The overshoot is a percentage of the marked word, which is right until the word
+   fills the line: on a phone that put the circle 27px past the viewport, and a page
+   wider than the screen is what made every section stop reaching the edges. Capping
+   it in px keeps the proportional overshoot on short words and only reins in the
+   full-width ones, so nothing has to be clipped. */
+.mk-circle svg{position:absolute;left:max(-11%,-13px);top:-34%;
+  width:min(123%,calc(100% + 26px));height:170%;overflow:visible;pointer-events:none}
 /* non-scaling-stroke keeps the line an even weight: without it the squash that
    fits the loop around a long word makes the sides fat and the top hairline */
 .mk-circle path{fill:none;stroke:var(--naranja);stroke-width:4.5;vector-effect:non-scaling-stroke;
@@ -462,6 +477,11 @@ html:not(.js) .mk-gr{opacity:1;transform:none}
 
 .mani-num{color:var(--rojo);font-size:15px;letter-spacing:.1em;margin-bottom:26px;position:relative;z-index:2}
 .mani-h{font-size:clamp(34px,5.6vw,82px);color:var(--rojo);max-width:15em;position:relative;z-index:2;margin-bottom:30px}
+/* The 34px floor is wider than the narrowest phones can hold: "MULTIDISCIPLINARIAS"
+   measures 319px there against a 294px column, and a single word has nowhere to
+   break. Below ~386px the size tracks the viewport instead; at 386px and up the
+   cap lands back on the same 34px, so nothing that already fits changes. */
+@media (max-width:520px){ .mani-h{font-size:clamp(28px,8.8vw,34px)} }
 
 
 .mani-h .jabin{font-style:normal;text-transform:none;font-size:1.14em;line-height:.7;vertical-align:-.06em;letter-spacing:0;display:inline-block;margin:0 .06em}
@@ -469,7 +489,10 @@ html:not(.js) .mk-gr{opacity:1;transform:none}
 .mani-ghost{
   position:absolute;z-index:0;top:50%;left:50%;
   transform:translate(calc(-50% + var(--gx,0px)),-50%);
-  font-size:clamp(150px,26vw,390px);letter-spacing:-.02em;
+  /* 26vw is safe at any width — the floor was not: on a 390px phone it forced
+     150px, and "01/06" at that size is 435px wide, so the ghost pushed the
+     document to 429px and every section stopped filling the screen. */
+  font-size:clamp(88px,26vw,390px);letter-spacing:-.02em;
   color:var(--cyan);line-height:1;pointer-events:none;white-space:nowrap;
 }
 .mani-item:nth-child(odd) .mani-ghost{--gx:-4vw}
@@ -604,10 +627,31 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
   .pill-link{padding:11px 18px;font-size:14px}
   .servs{grid-template-columns:1fr}
   .serv,.serv:last-child{grid-column:span 1;aspect-ratio:1034/1213}
-  /* full-bleed cover at 375px would blow the image up ~4x; a shorter hero + the
-     0.63 mobile crop lands within a few px of the artwork's real proportions */
-  .hero{height:70svh;min-height:460px}
-  .hero-letter picture{transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1)}
+  /* Full screen, no white band anywhere. A phone's viewport is about 0.46 wide-to-tall
+     and the artwork is 0.86, so cropping to fill would eat almost half the frame's
+     width and leave the lettering reading as "ao". Instead the frame is fitted whole
+     and the rest of the screen is filled with a blurred, darkened copy of the same
+     shot — the screen is covered edge to edge and the artwork survives intact.
+     Both layers keep the SAME object-fit: the lettering was lifted off these photos
+     and they were inpainted underneath it, so the moment the two stop sharing a crop
+     the patched areas are uncovered and read as blocky ghosting. */
+  .hero{height:100svh;min-height:560px}
+  .hero-slide::before{
+    content:'';position:absolute;inset:0;z-index:0;
+    background:var(--bg) center/cover no-repeat;
+    filter:blur(38px) brightness(.46) saturate(.85);transform:scale(1.15);
+  }
+  /* 1.3 is the size that lands the crop back on the ~77% of the frame's width the
+     shorter hero used to show, while shrinking the blurred bands to a sliver. The
+     mask melts the frame into them so there is no hard seam. Both layers carry the
+     same scale, for the reason above. */
+  .hero-slide picture{position:relative;z-index:1;
+    transform:translate3d(var(--px,0px),var(--py,0px),0) scale(1.3);
+    -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 91%,transparent 100%);
+    mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 91%,transparent 100%);
+  }
+  .hero-slide img,.hero-letter img{object-fit:contain;object-position:center 50%}
+  .hero-letter picture{transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1.3)}
   .hero-slide img{object-position:center 50%;transform:none}
   .hero-slide.is-active img{animation:none}
   .hero-dots{bottom:calc(104px + env(safe-area-inset-bottom))}

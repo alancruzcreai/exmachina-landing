@@ -372,14 +372,16 @@
   // enough to feel alive, small enough that it never reads as a moving image.
   if (!reduced) {
     let tx = 0, ty = 0, cx = 0, cy = 0, praf = null;
-    // One drift for the whole frame. There used to be a second, faster one for the
-    // lettering, which is what dragged the patched photo into view.
-    const BG_X = 12, BG_Y = 8;                          // kept inside the 5% overscan
+    // Two depths off one cursor: the frame drifts a little, the wordmark noticeably
+    // more. Opposed signs widen the gap without moving either far.
+    const BG_X = 12, BG_Y = 8, LT_X = -24, LT_Y = -15;
     function ease() {
       cx += (tx - cx) * 0.08;
       cy += (ty - cy) * 0.08;
       hero.style.setProperty('--px', (cx * BG_X).toFixed(2) + 'px');
       hero.style.setProperty('--py', (cy * BG_Y).toFixed(2) + 'px');
+      hero.style.setProperty('--lx', (cx * LT_X).toFixed(2) + 'px');
+      hero.style.setProperty('--ly', (cy * LT_Y).toFixed(2) + 'px');
       praf = (Math.abs(tx - cx) > 0.0015 || Math.abs(ty - cy) > 0.0015)
         ? requestAnimationFrame(ease) : null;
     }

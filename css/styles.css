@@ -306,13 +306,16 @@ ul,ol{list-style:none}
 .hero-slide img{width:100%;height:100%;object-fit:cover;object-position:center 45%}
 .hero.is-live .hero-slide.is-active img{animation:kenburns 6.6s cubic-bezier(.25,.6,.35,1) forwards}
 @keyframes kenburns{from{transform:scale(1.042) translate3d(.35%,0,0)}to{transform:scale(1.0) translate3d(0,0,0)}}
-/* The lettering is part of the photograph again, as the artist composited it.
-   It used to be a separate drifting layer, which meant the photos had to be
-   inpainted underneath it — and that patch job was poor: smears and blocks over an
-   eye. As long as the layer sat exactly on top nobody saw it, but the moment it
-   drifted it dragged the mess into view. There is no repair good enough for a face
-   at that size, so the frame goes back to the original composite: nothing to
-   uncover, and the wordmark reads the way it was drawn. */
+/* The lettering is its own layer again — and this time it is safe. It drifted on
+   its own before too, but back then the photos underneath had been inpainted to
+   erase the baked-in wordmark, and that patch was poor: smears and blocks over an
+   eye. Any drift dragged the mess into view. The photographs are clean now, so
+   there is nothing underneath to uncover and the layer can move freely. */
+.hero-letter{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+.hero-letter picture{display:block;width:100%;height:100%;
+  transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1.02)}
+.hero-letter img{width:100%;height:100%;object-fit:contain;object-position:center 48%;
+  filter:drop-shadow(0 10px 30px rgba(0,0,0,.34))}
 
 .hero::after{content:'';position:absolute;inset:auto 0 0 0;height:24%;z-index:5;
   background:linear-gradient(to top,rgba(16,3,3,.5),transparent);pointer-events:none}
@@ -633,24 +636,13 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
   .pill-link{padding:11px 18px;font-size:14px}
   .servs{grid-template-columns:1fr}
   .serv,.serv:last-child{grid-column:span 1;aspect-ratio:1034/1213}
-  /* Full screen, no white band anywhere. A phone is about 0.46 wide-to-tall and the
-     frame is 1.70, so cropping to fill would throw away three quarters of its width
-     and eat the wordmark. The frame is fitted whole instead and the rest of the
-     screen is filled with a blurred, darkened copy of the same shot: the screen is
-     covered edge to edge and EX MACHINA still reads. 1.12 buys a little size without
-     biting into the letters, and the mask melts the frame into the fill. */
+  /* Three of the four frames are portrait now, so on a phone they fill the screen
+     edge to edge on their own — no blurred fill, no bands. The wordmark rides on
+     top as its own layer and is fitted whole, so nothing of it gets cropped. */
   .hero{height:100svh;min-height:560px}
-  .hero-slide::before{
-    content:'';position:absolute;inset:0;z-index:0;
-    background:var(--bg) center/cover no-repeat;
-    filter:blur(38px) brightness(.46) saturate(.85);transform:scale(1.15);
-  }
-  .hero-slide picture{position:relative;z-index:1;
-    transform:translate3d(var(--px,0px),var(--py,0px),0) scale(1.12);
-    -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 12%,#000 88%,transparent 100%);
-    mask-image:linear-gradient(to bottom,transparent 0,#000 12%,#000 88%,transparent 100%);
-  }
-  .hero-slide img{object-fit:contain;object-position:center 50%}
+  .hero-slide picture{transform:translate3d(var(--px,0px),var(--py,0px),0) scale(1.03)}
+  .hero-slide img{object-fit:cover;object-position:center 42%}
+  .hero-letter picture{transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1)}
   .hero-slide img{object-position:center 50%;transform:none}
   .hero-slide.is-active img{animation:none}
   .hero-dots{bottom:calc(104px + env(safe-area-inset-bottom))}

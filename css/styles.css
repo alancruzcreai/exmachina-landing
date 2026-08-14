@@ -533,6 +533,9 @@ html:not(.js) .mk-gr{opacity:1;transform:none}
    no-JS fallback and as the luminance source */
 .member-ph{border-radius:16px;overflow:hidden;aspect-ratio:1090/1322;background:#12131E;position:relative;cursor:crosshair}
 .ascii-cv{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;pointer-events:none}
+/* cutout variant: no plate, no rounded edge — only the glyphs of the silhouette,
+   so the figure reads as floating on the section itself */
+.member-ph[data-ascii~="cutout"]{background:none;border-radius:0;overflow:visible}
 .member-ph:has(.ascii-cv) img{opacity:0}
 .member-ph--clawd{background:#EDEBE4}
 .member-ph img{width:100%;height:100%;object-fit:cover}

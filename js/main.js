@@ -608,6 +608,13 @@
     const img = fig.querySelector('img');
     if (!img) return;
 
+    const opts = (fig.getAttribute('data-ascii') || '').split(/\s+/);
+    const ORANGE = opts.includes('orange');
+    // Cut-off is applied to the BASE luminance, never to the torch-lifted value:
+    // otherwise the torch would light the dark background back up and the plate
+    // would reappear around the silhouette.
+    const CUT = opts.includes('cutout') ? 0.17 : 0;
+
     const cv = document.createElement('canvas');
     cv.className = 'ascii-cv';
     cv.setAttribute('aria-hidden', 'true');
@@ -660,7 +667,9 @@
         const cy = y * CELL + CELL / 2;
         for (let x = 0; x < cols; x++) {
           const cx = x * CELL + CELL / 2;
-          let v = lum[y * cols + x];
+          const base = lum[y * cols + x];
+          if (base < CUT) continue;
+          let v = base;
           const dx = cx - px, dy = cy - py;
           const d2 = dx * dx + dy * dy;
           let t = 0;
@@ -671,7 +680,8 @@
           if (ch === ' ') continue;
           const size = CELL * (0.82 + 0.5 * t);
           ctx.font = '700 ' + size.toFixed(1) + 'px "NeurealMono", ui-monospace, monospace';
-          ctx.fillStyle = 'rgba(255,255,255,' + (0.22 + 0.78 * v).toFixed(3) + ')';
+          const a = (0.22 + 0.78 * v).toFixed(3);
+          ctx.fillStyle = ORANGE ? 'rgba(255,55,0,' + a + ')' : 'rgba(255,255,255,' + a + ')';
           ctx.fillText(ch, cx, cy);
         }
       }

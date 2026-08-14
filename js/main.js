@@ -372,16 +372,14 @@
   // enough to feel alive, small enough that it never reads as a moving image.
   if (!reduced) {
     let tx = 0, ty = 0, cx = 0, cy = 0, praf = null;
-    // the photo drifts a little, the lettering noticeably more: same cursor, two
-    // depths. Opposed signs make the gap read stronger without moving either far.
-    const BG_X = 12, BG_Y = 8, LT_X = -26, LT_Y = -17;  // kept inside the 5% overscan
+    // One drift for the whole frame. There used to be a second, faster one for the
+    // lettering, which is what dragged the patched photo into view.
+    const BG_X = 12, BG_Y = 8;                          // kept inside the 5% overscan
     function ease() {
       cx += (tx - cx) * 0.08;
       cy += (ty - cy) * 0.08;
       hero.style.setProperty('--px', (cx * BG_X).toFixed(2) + 'px');
       hero.style.setProperty('--py', (cy * BG_Y).toFixed(2) + 'px');
-      hero.style.setProperty('--lx', (cx * LT_X).toFixed(2) + 'px');
-      hero.style.setProperty('--ly', (cy * LT_Y).toFixed(2) + 'px');
       praf = (Math.abs(tx - cx) > 0.0015 || Math.abs(ty - cy) > 0.0015)
         ? requestAnimationFrame(ease) : null;
     }
@@ -573,12 +571,6 @@
     gsap.to('.hero-slides', {
       yPercent: 13, ease: 'none',
       scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.4 }
-    });
-    // lettering climbs faster than the photo — the depth cue that works on touch,
-    // where there is no cursor to drive the drift
-    gsap.to('.hero-letter', {
-      yPercent: -22, scale: 1.06, ease: 'none',
-      scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.25 }
     });
     gsap.to('.hero-dots', {
       opacity: 0, y: 20, ease: 'none',

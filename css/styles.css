@@ -83,14 +83,14 @@ ul,ol{list-style:none}
 :root{--dock-ease:cubic-bezier(.36,.33,0,1)}
 .dock-group{display:contents}
 .dock{
-  position:fixed;left:clamp(14px,1.9vw,28px);top:50%;transform:translateY(-50%);
+  position:fixed;left:clamp(14px,1.9vw,28px);top:0;bottom:0;height:fit-content;margin:auto 0;
   z-index:100;display:flex;flex-direction:column;gap:7.11px;
   /* flex-start, not the default stretch: stretch forces every button to the
      container width and the dock growth would be silently ignored */
   align-items:flex-start;
   opacity:0;animation:dockIn .8s var(--ease) 2.9s forwards;
 }
-@keyframes dockIn{from{opacity:0;transform:translateY(-50%) translateX(-12px)}to{opacity:1;transform:translateY(-50%)}}
+@keyframes dockIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
 .dock-link{
   position:relative;width:57px;height:57px;flex:0 0 auto;
   display:flex;align-items:center;justify-content:center;
@@ -154,7 +154,7 @@ ul,ol{list-style:none}
    docks above the bottom bar and rises 12px instead. */
 .dock-flyout{
   position:fixed;top:12px;bottom:12px;
-  left:calc(clamp(14px,1.9vw,28px) + 69px);
+  left:calc(clamp(14px,1.9vw,28px) + 57px + 26px);
   width:min(50vw,calc(100vw - 120px));
   z-index:99;display:flex;flex-flow:column;overflow:hidden;
   border-radius:24px;background:var(--tinta);color:var(--crema);
@@ -167,7 +167,7 @@ ul,ol{list-style:none}
   transition:opacity .28s var(--ease),transform .28s var(--ease);
 }
 .dock-flyout-body{flex:1 1 auto;min-height:0;overflow-y:auto;outline:none;
-  padding:1.5rem clamp(1.5rem,3vw,2.75rem) 1.75rem;
+  padding:clamp(84px,10vh,104px) clamp(1.5rem,3vw,2.75rem) 1.75rem;
   display:flex;flex-flow:column;gap:clamp(28px,4vh,54px)}
 .dock-menu-sections,.dock-menu-secondary,.dock-menu-socials{margin:0;padding:0;list-style:none}
 
@@ -222,7 +222,7 @@ ul,ol{list-style:none}
 .dock-menu{
   position:fixed;left:clamp(14px,1.9vw,30px);bottom:22px;z-index:100;
   display:flex;flex-flow:column;align-items:center;gap:.5rem;padding:.25rem;
-  min-width:4em;border:0;background:none;cursor:pointer;
+  min-width:0;width:fit-content;border:0;background:none;cursor:pointer;
   font-family:'Dapper','Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:900;
   font-size:1.0625rem;text-transform:uppercase;letter-spacing:-.01em;color:var(--blanco);
   opacity:0;animation:fadeUp .8s var(--ease) 3.1s forwards;

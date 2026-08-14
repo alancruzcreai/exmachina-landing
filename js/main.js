@@ -396,15 +396,56 @@
 
   /* ---------- SCROLLSPY ---------- */
   const spyMap = { manifiesto: 'manifiesto', trabajo: 'trabajo', contacto: 'contacto' };
-  const links = [...document.querySelectorAll('.pill-link')];
+  const links = [...document.querySelectorAll('.dock-link')];
   const spyIO = new IntersectionObserver(entries => {
     entries.forEach(en => {
       if (!en.isIntersecting) return;
       const id = en.target.id;
-      links.forEach(l => l.classList.toggle('is-active', l.dataset.spy === id));
+      links.forEach(l => {
+        const on = l.dataset.spy === id;
+        l.classList.toggle('is-active', on);
+        if (on) l.setAttribute('aria-current', 'true'); else l.removeAttribute('aria-current');
+      });
     });
   }, { rootMargin: '-35% 0px -55% 0px' });
   Object.values(spyMap).forEach(id => { const el = document.getElementById(id); if (el) spyIO.observe(el); });
+
+  /* ---------- DOCK CONTRAST ---------- */
+  // Sampled by geometry rather than IntersectionObserver: the dock must never be
+  // left unreadable, and a missed callback here means invisible navigation.
+  (function dockContrast() {
+    const dockEl2 = document.getElementById('dock');
+    const menuEl = document.querySelector('.dock-menu');
+    if (!dockEl2) return;
+    const darkSel = '.hero,.oport,.trabajo,.equipo-sec,.foot';
+    function pick(el, cls) {
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const y = r.top + r.height / 2, x = r.left + r.width / 2;
+      let onLight = true;
+      document.querySelectorAll(darkSel).forEach(sec => {
+        const s = sec.getBoundingClientRect();
+        if (y >= s.top && y <= s.bottom && x >= s.left - 40 && x <= s.right + 40) onLight = false;
+      });
+      el.classList.toggle(cls, onLight);
+    }
+    function update() { pick(dockEl2, 'on-light'); pick(menuEl, 'on-light'); }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    setInterval(update, 400);
+    update();
+  })();
+
+  /* ---------- DOCK MENU TOGGLE ---------- */
+  // pins the labels open, so the rail can be read without hovering each icon
+  const dockEl = document.getElementById('dock');
+  const dockMenu = document.querySelector('.dock-menu');
+  if (dockEl && dockMenu) {
+    dockMenu.addEventListener('click', () => {
+      const open = dockEl.classList.toggle('is-open');
+      dockMenu.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
 
   /* ---------- PENDING SOCIAL LINKS ---------- */
   document.querySelectorAll('[data-pending]').forEach(a => {

@@ -76,26 +76,114 @@ ul,ol{list-style:none}
 .brand-script{height:clamp(22px,2.1vw,30px);width:auto;fill:var(--crema)}
 #lgPlus{stroke:currentColor}
 
-.pill{
-  position:fixed;top:22px;right:clamp(16px,3vw,42px);z-index:100;
-  display:flex;gap:6px;padding:6px;border-radius:999px;
-  background:rgba(16,3,3,.42);
-  -webkit-backdrop-filter:blur(18px) saturate(1.4);
-  backdrop-filter:blur(18px) saturate(1.4);
-  border:1px solid rgba(255,255,255,.14);
-  box-shadow:0 8px 32px rgba(16,3,3,.25);
-  opacity:0;transform:translateY(-14px);
-  animation:pillIn .8s var(--ease) 2.9s forwards;
+/* ---------- DOCK NAV (Brand Appart structure, ExMachina glass) ----------
+   Measured off the reference: 57px buttons, 10.67px radius, 7.11px gap, the
+   dock-style hover (5em on the hovered item, 4.5em on each neighbour) and the
+   .36/.33/0/1 easing. Vertical rail on desktop, floating glass bar on mobile. */
+:root{--dock-ease:cubic-bezier(.36,.33,0,1)}
+.dock-group{display:contents}
+.dock{
+  position:fixed;left:clamp(14px,1.9vw,28px);top:50%;transform:translateY(-50%);
+  z-index:100;display:flex;flex-direction:column;gap:7.11px;
+  /* flex-start, not the default stretch: stretch forces every button to the
+     container width and the dock growth would be silently ignored */
+  align-items:flex-start;
+  opacity:0;animation:dockIn .8s var(--ease) 2.9s forwards;
 }
-@keyframes pillIn{to{opacity:1;transform:none}}
-.pill-link{
-  font-size:15px;color:var(--blanco);padding:11px 24px;border-radius:999px;
-  border:1px solid rgba(255,255,255,.10);
-  transition:background .3s,border-color .3s,color .3s;
-  min-height:44px;display:flex;align-items:center;
+@keyframes dockIn{from{opacity:0;transform:translateY(-50%) translateX(-12px)}to{opacity:1;transform:translateY(-50%)}}
+.dock-link{
+  position:relative;width:57px;height:57px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:10.67px;color:var(--blanco);
+  background:rgba(255,255,255,.10);
+  -webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);
+  border:1px solid rgba(255,255,255,.13);
+  transition:width .42s var(--dock-ease),background .32s var(--dock-ease),border-color .32s var(--dock-ease);
 }
-.pill-link:hover{background:rgba(255,255,255,.10)}
-.pill-link.is-active{background:var(--naranja);border-color:var(--naranja);color:var(--blanco)}
+.dock-inner{display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:relative}
+.dock-icon{display:flex;align-items:center;justify-content:center;width:23px;height:23px;
+  color:rgba(255,255,255,.62);transition:color .32s var(--dock-ease)}
+.dock-icon svg{width:100%;height:auto;display:block}
+/* the label lives outside the button and slides in on hover */
+.dock-tag{
+  position:absolute;left:calc(100% + 10px);top:50%;white-space:nowrap;
+  padding:7px 12px;border-radius:8px;
+  background:rgba(16,3,3,.72);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.12);
+  opacity:0;transform:translateY(-50%) translateX(-6px);pointer-events:none;
+  transition:transform .32s var(--dock-ease),opacity .24s var(--dock-ease);
+}
+.dock-tag-title{font-family:'Neureal','Courier New',monospace;font-size:12.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--blanco);line-height:1}
+.dock-dot{display:none}
+
+@media (hover:hover) and (pointer:fine) and (min-width:768px){
+  /* dock behaviour from the reference: the hovered button grows, and each
+     neighbour grows half as much, so the rail swells around the cursor */
+  /* px, not em: the reference's 5em resolves against ITS font-size; here the
+     inherited size made 5em land on exactly 57px, so nothing ever grew */
+  .dock-link:hover{width:80px;background:rgba(255,255,255,.20);border-color:rgba(255,255,255,.26)}
+  .dock-link:hover + .dock-link{width:72px}
+  .dock-link:has(+ :hover){width:72px}
+  .dock-link:hover .dock-icon{color:var(--naranja)}
+  .dock-link:hover .dock-tag{opacity:1;transform:translateY(-50%) translateX(0)}
+  /* with labels pinned open the tags stay out, so the dock keeps its rhythm */
+  .dock.is-open .dock-tag{opacity:1;transform:translateY(-50%) translateX(0)}
+}
+/* The dock is fixed and rides the whole page: over the white sections a light
+   glass button with white icons disappears, so it inverts by context. */
+.dock.on-light .dock-link{background:rgba(16,3,3,.08);border-color:rgba(16,3,3,.14)}
+.dock.on-light .dock-icon{color:rgba(46,9,9,.55)}
+.dock.on-light .dock-link.is-active{background:var(--naranja);border-color:var(--naranja)}
+.dock.on-light .dock-link.is-active .dock-icon{color:var(--blanco)}
+.dock-menu.on-light{color:var(--rojo);text-shadow:none}
+@media (hover:hover) and (pointer:fine) and (min-width:768px){
+  .dock.on-light .dock-link:hover{background:rgba(16,3,3,.14);border-color:rgba(16,3,3,.2)}
+  .dock.on-light .dock-link:hover .dock-icon{color:var(--naranja)}
+}
+.dock-link:focus-visible{outline:2px solid var(--naranja);outline-offset:3px}
+.dock-link.is-active{background:rgba(255,55,0,.92);border-color:rgba(255,55,0,.5)}
+.dock-link.is-active .dock-icon{color:var(--blanco)}
+
+/* MENU block, bottom-left, exactly like the reference's toggle */
+.dock-menu{
+  position:fixed;left:clamp(14px,1.9vw,30px);bottom:22px;z-index:100;
+  display:flex;flex-flow:column;align-items:center;gap:.5rem;padding:.25rem;
+  min-width:4em;border:0;background:none;cursor:pointer;
+  font-family:'Dapper','Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:900;
+  font-size:1.0625rem;text-transform:uppercase;letter-spacing:-.01em;color:var(--blanco);
+  opacity:0;animation:fadeUp .8s var(--ease) 3.1s forwards;
+  transition:opacity .32s var(--ease);
+  text-shadow:0 1px 12px rgba(16,3,3,.6);
+}
+.dock-menu:hover{opacity:.6}
+.dock-menu-dots{display:flex;gap:3px}
+.dock-menu-dots span{width:3px;height:3px;border-radius:50%;background:currentColor}
+
+@media (max-width:767px){
+  /* the rail becomes a floating glass bar, the labels give way to a dot */
+  .dock{
+    left:50%;right:auto;top:auto;bottom:calc(22px + env(safe-area-inset-bottom));
+    transform:translateX(-50%);flex-direction:row;align-items:center;gap:0;padding:0 12px;
+    border-radius:12px;background:rgba(16,3,3,.72);
+    -webkit-backdrop-filter:blur(32px) saturate(1.4);backdrop-filter:blur(32px) saturate(1.4);
+    border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 34px rgba(16,3,3,.32);
+    animation:dockInM .8s var(--ease) 2.9s forwards;
+  }
+  @keyframes dockInM{from{opacity:0;transform:translateX(-50%) translateY(14px)}to{opacity:1;transform:translateX(-50%)}}
+  .dock-link{width:57px;background:none;border:0;backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:0}
+  .dock-link.is-active{background:none}
+  .dock-tag{display:none}
+  .dock-dot{
+    display:block;position:absolute;left:50%;bottom:9px;width:4px;height:4px;border-radius:50%;
+    background:var(--naranja);opacity:0;transform:translate(-50%,6px);
+    transition:transform .32s var(--dock-ease),opacity .24s var(--dock-ease);
+  }
+  .dock-link.is-active .dock-dot{opacity:1;transform:translate(-50%,0)}
+  .dock-link.is-active .dock-icon{color:var(--naranja)}
+  .dock-menu{display:none}
+}
 
 /* ---------- HERO ---------- */
 .hero{position:relative;height:100svh;min-height:540px;background:var(--tinta);overflow:hidden}
@@ -437,7 +525,7 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
   .hero-letter picture{transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1)}
   .hero-slide img{object-position:center 50%;transform:none}
   .hero-slide.is-active img{animation:none}
-  .hero-dots{bottom:calc(84px + env(safe-area-inset-bottom))}
+  .hero-dots{bottom:calc(104px + env(safe-area-inset-bottom))}
   .mani-p{font-size:17px}
   .wfpc-imgs{grid-template-columns:1fr 1fr}
   .foot-cols{gap:48px}

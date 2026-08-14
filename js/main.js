@@ -81,8 +81,24 @@
     el.textContent = '';
     const holder = document.createElement('span');
     holder.setAttribute('aria-hidden', 'true');
+    // A child element used only to colour a run of text — <span class="c-naranja">
+    // — has to be split word by word too, or the illumination lights it as one
+    // block. The drawn marks are the exception: .mk-circle wraps the phrase its
+    // circle is drawn around, so splitting it would leave the stroke with nothing
+    // to enclose. Those stay whole, as they were.
+    const ENTERO = '.mk-circle,.mk-ul,.mk-crown,.mk-hl,.mk-gr';
     kids.forEach(node => {
-      if (node.nodeType === 1) {
+      if (node.nodeType === 1 && node.tagName === 'BR') {
+        holder.appendChild(node);
+      } else if (node.nodeType === 1 && !node.matches(ENTERO) && !node.children.length) {
+        node.textContent.split(/\s+/).filter(Boolean).forEach(word => {
+          const s = document.createElement('span');
+          s.className = 'w ' + node.className;
+          s.textContent = word;
+          holder.appendChild(s);
+          holder.appendChild(document.createTextNode(' '));
+        });
+      } else if (node.nodeType === 1) {
         node.classList.add('w');
         holder.appendChild(node);
         holder.appendChild(document.createTextNode(' '));

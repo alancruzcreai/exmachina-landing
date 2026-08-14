@@ -436,16 +436,41 @@
     update();
   })();
 
-  /* ---------- DOCK MENU TOGGLE ---------- */
-  // pins the labels open, so the rail can be read without hovering each icon
-  const dockEl = document.getElementById('dock');
-  const dockMenu = document.querySelector('.dock-menu');
-  if (dockEl && dockMenu) {
-    dockMenu.addEventListener('click', () => {
-      const open = dockEl.classList.toggle('is-open');
-      dockMenu.setAttribute('aria-expanded', open ? 'true' : 'false');
+  /* ---------- MENU FLYOUT ---------- */
+  /* Mirrors the reference's interaction: MENU becomes CLOSE, the panel fades and
+     slides in, clicking away or pressing Escape dismisses it, and focus moves in
+     and back out so the whole thing is usable from the keyboard. */
+  (function menuFlyout() {
+    const btn = document.querySelector('.dock-menu');
+    const panel = document.getElementById('dock-flyout');
+    if (!btn || !panel) return;
+    const body = panel.querySelector('.dock-flyout-body');
+    const dockNav = document.getElementById('dock');
+    let open = false;
+
+    function setOpen(v) {
+      if (open === v) return;
+      open = v;
+      panel.setAttribute('data-state', v ? 'open' : 'closed');
+      btn.setAttribute('aria-expanded', v ? 'true' : 'false');
+      btn.childNodes[0].nodeValue = v ? 'Close' : 'Menu';
+      // the rail's hover labels would collide with the panel sitting next to it
+      if (dockNav) dockNav.classList.toggle('flyout-open', v);
+      if (v) { body.focus({ preventScroll: true }); }
+      else if (document.activeElement && panel.contains(document.activeElement)) btn.focus();
+    }
+
+    btn.addEventListener('click', e => { e.stopPropagation(); setOpen(!open); });
+    // any navigation from inside closes it
+    panel.querySelectorAll('a[href]').forEach(a =>
+      a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('click', e => {
+      if (open && !panel.contains(e.target) && !btn.contains(e.target)) setOpen(false);
     });
-  }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && open) { setOpen(false); btn.focus(); }
+    });
+  })();
 
   /* ---------- PENDING SOCIAL LINKS ---------- */
   document.querySelectorAll('[data-pending]').forEach(a => {

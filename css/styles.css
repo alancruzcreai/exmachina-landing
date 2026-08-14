@@ -69,7 +69,7 @@ ul,ol{list-style:none}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
 /* ---------- HEADER / NAV ---------- */
-.hdr{position:absolute;top:0;left:0;right:0;z-index:40;padding:26px clamp(18px,3.2vw,46px);pointer-events:none}
+.hdr{position:absolute;top:0;left:0;right:0;z-index:101;padding:26px clamp(18px,3.2vw,46px);pointer-events:none}
 .brand{display:flex;align-items:flex-end;gap:14px;pointer-events:auto;width:fit-content;padding:8px 0}
 .brand-word{height:clamp(17px,1.6vw,23px);width:auto;fill:var(--naranja);color:var(--naranja)}
 .brand-word use[href="#lgPlus"]{stroke:var(--naranja)}
@@ -130,6 +130,8 @@ ul,ol{list-style:none}
   .dock-link:hover .dock-tag{opacity:1;transform:translateY(-50%) translateX(0)}
   /* with labels pinned open the tags stay out, so the dock keeps its rhythm */
   .dock.is-open .dock-tag{opacity:1;transform:translateY(-50%) translateX(0)}
+  /* panel sits right where the labels would pop out */
+  .dock.flyout-open .dock-tag{opacity:0 !important}
 }
 /* The dock is fixed and rides the whole page: over the white sections a light
    glass button with white icons disappears, so it inverts by context. */
@@ -145,6 +147,76 @@ ul,ol{list-style:none}
 .dock-link:focus-visible{outline:2px solid var(--naranja);outline-offset:3px}
 .dock-link.is-active{background:rgba(255,55,0,.92);border-color:rgba(255,55,0,.5)}
 .dock-link.is-active .dock-icon{color:var(--blanco)}
+
+/* ---------- MENU FLYOUT ----------
+   Same anatomy as the reference: a solid ink panel beside the rail that fades and
+   slides 16px in over .28s, with the items staggered 35ms apart. On mobile it
+   docks above the bottom bar and rises 12px instead. */
+.dock-flyout{
+  position:fixed;top:12px;bottom:12px;
+  left:calc(clamp(14px,1.9vw,28px) + 69px);
+  width:min(50vw,calc(100vw - 120px));
+  z-index:99;display:flex;flex-flow:column;overflow:hidden;
+  border-radius:24px;background:var(--tinta);color:var(--crema);
+  box-shadow:0 30px 80px rgba(16,3,3,.45);
+  opacity:0;pointer-events:none;transform:translateX(-16px);
+  transition:opacity .2s cubic-bezier(.4,0,1,1),transform .2s cubic-bezier(.4,0,1,1);
+}
+.dock-flyout[data-state="open"]{
+  opacity:1;pointer-events:auto;transform:translateX(0);
+  transition:opacity .28s var(--ease),transform .28s var(--ease);
+}
+.dock-flyout-body{flex:1 1 auto;min-height:0;overflow-y:auto;outline:none;
+  padding:1.5rem clamp(1.5rem,3vw,2.75rem) 1.75rem;
+  display:flex;flex-flow:column;gap:clamp(28px,4vh,54px)}
+.dock-menu-sections,.dock-menu-secondary,.dock-menu-socials{margin:0;padding:0;list-style:none}
+
+.dock-menu-section{
+  display:block;width:100%;text-align:left;
+  font-family:'Dapper','Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:900;
+  font-size:clamp(2rem,4.4vw,3rem);line-height:1.06;letter-spacing:-.02em;
+  color:rgba(237,231,225,.7);
+  transition:color .32s var(--ease);
+}
+.dock-menu-section:hover,.dock-menu-section:focus-visible{color:var(--crema)}
+
+.dock-menu-secondary{display:flex;flex-flow:column;gap:.5rem}
+.dock-menu-secondary-link{
+  font-family:'Neureal','Courier New',monospace;
+  text-transform:uppercase;letter-spacing:.08em;font-size:.8125rem;font-weight:700;
+  color:rgba(237,231,225,.5);transition:color .32s var(--ease);
+}
+.dock-menu-secondary-link:hover,.dock-menu-secondary-link:focus-visible{color:var(--crema)}
+
+.dock-menu-socials{display:flex;gap:.5rem}
+.dock-soc{
+  display:flex;align-items:center;justify-content:center;width:2rem;height:2rem;
+  border-radius:8px;background:rgba(237,231,225,.1);color:rgba(237,231,225,.7);
+  transition:background-color .32s var(--ease),color .32s var(--ease);
+}
+.dock-soc:hover,.dock-soc:focus-visible{background:var(--naranja);color:var(--blanco)}
+.dock-soc-icon{width:.75rem;height:.75rem}
+
+/* items settle in one after another once the panel is open */
+.dock-flyout-body > ul > li,.dock-menu-socials{opacity:0;transform:translateY(10px);
+  transition:opacity .3s var(--ease),transform .3s var(--ease)}
+.dock-flyout[data-state="open"] .dock-flyout-body > ul > li,
+.dock-flyout[data-state="open"] .dock-menu-socials{
+  opacity:1;transform:none;transition-delay:calc(var(--i,0) * 35ms + 40ms)}
+
+@media (max-width:767px){
+  .dock-flyout{
+    top:auto;left:.5rem;right:.5rem;width:auto;
+    bottom:calc(81px + .5rem + env(safe-area-inset-bottom));
+    max-height:60dvh;transform:translateY(12px);border-radius:18px;
+  }
+  .dock-flyout[data-state="open"]{transform:translateY(0)}
+  .dock-flyout-body{padding:1.25rem 1.25rem 1.5rem;gap:24px}
+}
+@media (prefers-reduced-motion:reduce){
+  .dock-flyout,.dock-flyout[data-state="open"]{transition:opacity .12s linear;transform:none}
+  .dock-flyout-body > ul > li,.dock-menu-socials{transition-delay:0s !important;transform:none}
+}
 
 /* MENU block, bottom-left, exactly like the reference's toggle */
 .dock-menu{
@@ -162,6 +234,13 @@ ul,ol{list-style:none}
 .dock-menu-dots span{width:3px;height:3px;border-radius:50%;background:currentColor}
 
 @media (max-width:767px){
+  /* On mobile the reference hides its MENU entirely, which would strand the whole
+     flyout — here it becomes one more item in the bar, keeping the three dots. */
+  .dock-menu{display:flex;position:static;width:57px;height:57px;padding:0;
+    gap:0;min-width:0;font-size:0;opacity:1;animation:none;text-shadow:none}
+  .dock-menu-dots{gap:4px}
+  .dock-menu-dots span{width:4px;height:4px;background:rgba(255,255,255,.62)}
+  .dock-menu[aria-expanded="true"] .dock-menu-dots span{background:var(--naranja)}
   /* the rail becomes a floating glass bar, the labels give way to a dot */
   .dock{
     left:50%;right:auto;top:auto;bottom:calc(22px + env(safe-area-inset-bottom));
@@ -182,7 +261,6 @@ ul,ol{list-style:none}
   }
   .dock-link.is-active .dock-dot{opacity:1;transform:translate(-50%,0)}
   .dock-link.is-active .dock-icon{color:var(--naranja)}
-  .dock-menu{display:none}
 }
 
 /* ---------- HERO ---------- */

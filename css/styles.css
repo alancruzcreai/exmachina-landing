@@ -290,11 +290,18 @@ ul,ol{list-style:none}
 /* Crossfade: the outgoing frame keeps drifting while the incoming one settles, so
    the change never reads as a cut. will-change is set only on the two slides in
    play — pinning all four costs real memory on phones and causes the stutter. */
+/* A wipe, not a dissolve. Two opaque photographs cross-faded on opacity spend half
+   a second at 50/50, and with portraits that reads as a double exposure — muddy,
+   like a mistake. The incoming frame is revealed by an expanding clip instead, so
+   at every instant one photograph is on screen, whole. */
 .hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;
-  transition:opacity .95s cubic-bezier(.33,0,.15,1)}
-.hero-slide.is-active,.hero-slide.is-leaving{will-change:opacity}
-.hero-slide.is-active{opacity:1;z-index:2}
-.hero-slide.is-leaving{z-index:1}
+  clip-path:inset(0 0 0 100%);
+  transition:opacity .28s linear,clip-path .95s cubic-bezier(.62,.02,.2,1)}
+.hero-slide.is-active,.hero-slide.is-leaving{will-change:clip-path}
+/* the incoming frame is opaque from the first instant and the clip does the work */
+.hero-slide.is-active{opacity:1;z-index:2;clip-path:inset(0)}
+/* the outgoing one stays whole underneath until it is completely covered */
+.hero-slide.is-leaving{z-index:1;opacity:1;clip-path:inset(0);transition:none}
 /* parallax lives on the wrapper, ken burns on the image: two transforms that
    would otherwise overwrite each other */
 /* no CSS transition here on purpose: the JS lerp already smooths the drift, and
@@ -659,7 +666,7 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
   /* keep the dissolve and the progress bar — drop only the movement */
   .hero-slide.is-active img{animation:none;transform:none}
   .hero-slide picture{transform:none}
-  .hero-slide{transition:opacity .6s ease}
+  .hero-slide{transition:opacity .28s linear,clip-path .7s cubic-bezier(.62,.02,.2,1)}
   .loader{animation-delay:.4s}
   .loader-plus{animation:none}
   [data-ilum] .w{opacity:1 !important}

@@ -614,6 +614,11 @@
     // otherwise the torch would light the dark background back up and the plate
     // would reappear around the silhouette.
     const CUT = opts.includes('cutout') ? 0.17 : 0;
+    // The three portraits sample a photo. This one has no photo worth sampling, so
+    // the scene is authored straight into the luminance grid and re-authored every
+    // frame — same ramp, same colour, same torch, so it reads as a sibling of the
+    // portraits instead of a separate widget bolted onto the section.
+    const LIVE = opts.includes('live');
 
     const cv = document.createElement('canvas');
     cv.className = 'ascii-cv';
@@ -625,14 +630,155 @@
     let px = -9999, py = -9999, tx = -9999, ty = -9999;
     let raf = null, idleFrames = 0;
 
+    /* ---------- Claw'd, drawn by hand ----------------------------------------
+       Claw'd peeks over a terminal and types. A CLI session is the honest thing to
+       animate here: the lines that start with $ or > are typed a character at a
+       time, everything else is printed whole the moment it is reached, which is how
+       the real tool behaves. Glyphs on the screen are forced rather than picked off
+       the ramp — the grid is the same, so the code sits on the exact cells the rest
+       of the figure is built from. */
+    let glyph = null, t0 = 0, inView = false, lastFrame = 0, io = null;
+    const CPS = 24;                            // characters per second
+    const HOLD = 2.4;                          // seconds parked on the finished screen
+    const SCRIPT = [
+      '$ claude',
+      '* Bienvenido a Claude Code',
+      '',
+      '> arma la landing de Ex Machina',
+      '- leyendo brief.md',
+      '- leyendo marca.json',
+      '+ 2 archivos en contexto',
+      '',
+      'const idea = await claude.pensar({',
+      '  marca: "Ex Machina",',
+      '  tono: "tecnologia con alma"',
+      '})',
+      '',
+      '> aplicalo a la seccion de equipo',
+      '- escribiendo index.html',
+      '- escribiendo styles.css',
+      '- escribiendo main.js',
+      '+ 3 archivos escritos',
+      '',
+      '$ npm run build',
+      '- compilando...',
+      '+ build listo en 0.42s',
+      '',
+      '$ deploy',
+      '+ live en exmachina.work',
+      '',
+      '* Todo listo. Algo mas?',
+      '$ '
+    ];
+    const isTyped = s => s[0] === '$' || s[0] === '>';
+    // cost of each line in ticks: a typed line costs its length plus a beat, a
+    // printed one just the beat, a blank one barely anything
+    const cost = (s, shown) => !s ? 2 : isTyped(s) ? shown + 3 : 7;
+    const TICKS = SCRIPT.reduce((n, s) => n + cost(s, s.length), 0);
+    const CYCLE = TICKS + HOLD * CPS;
+
+    function fillCells(x0, y0, x1, y1, v) {
+      for (let y = Math.max(0, y0 | 0); y < Math.min(rows, y1 | 0); y++)
+        for (let x = Math.max(0, x0 | 0); x < Math.min(cols, x1 | 0); x++)
+          lum[y * cols + x] = v;
+    }
+    // Claw'd's own proportions, measured off the welcome-screen sprite and kept
+    // exact: body, two side nubs, two eyes, and three notches for the four legs.
+    function clawd(x0, y0, w, h, blink) {
+      const nx = u => x0 + u * w, ny = u => y0 + u * h;
+      fillCells(nx(0.172), ny(0), nx(0.851), ny(1), 0.88);
+      fillCells(nx(0.258), ny(0.724), nx(0.338), ny(1.02), 0);
+      fillCells(nx(0.421), ny(0.724), nx(0.589), ny(1.02), 0);
+      fillCells(nx(0.672), ny(0.724), nx(0.755), ny(1.02), 0);
+      if (!blink) {
+        fillCells(nx(0.258), ny(0.116), nx(0.338), ny(0.239), 0);
+        fillCells(nx(0.672), ny(0.116), nx(0.755), ny(0.239), 0);
+      }
+    }
+
+    function scene(now) {
+      const s = (now - t0) / 1000;
+      lum.fill(0);
+      glyph.fill('');
+
+      const C = cols, R = rows;
+      // cells are square, so the sprite keeps its proportions straight from its
+      // width in cells — no need to know the card's aspect ratio here
+      const sx = 0.17 * C, sw = 0.66 * C, sh = sw / 1.478;
+      const sy = 0.075 * R;
+      const tx0 = (0.14 * C) | 0, tx1 = (0.86 * C) | 0;
+      const ty0 = (0.275 * R) | 0, ty1 = (0.845 * R) | 0;
+
+      // eyes shut for a beat every few seconds
+      const blink = (s % 4.6) > 4.44;
+      clawd(sx, sy, sw, sh, blink);
+
+      // terminal over Claw'd's lower half: frame, then the screen punched out dark
+      fillCells(tx0, ty0, tx1, ty1, 0.6);
+      fillCells(tx0 + 1, ty0 + 1, tx1 - 1, ty1 - 1, 0);
+      fillCells(tx0 + 1, ty0 + 1, tx1 - 1, ty0 + 3, 0.3);          // title bar
+      for (let d = 0; d < 3; d++) fillCells(tx0 + 3 + d * 3, ty0 + 2, tx0 + 4 + d * 3, ty0 + 3, 0.9);
+
+      // the two nubs rest on the top edge and tap, out of phase
+      const tap = p => ((Math.sin(s * 7 + p) > 0) ? 2 : 0);
+      const ay0 = sy + 0.239 * sh, ay1 = sy + 0.502 * sh;
+      fillCells(sx, ay0 + tap(0), sx + 0.172 * sw, ay1 + tap(0), 0.88);
+      fillCells(sx + 0.851 * sw, ay0 + tap(Math.PI), sx + sw, ay1 + tap(Math.PI), 0.88);
+
+      // typing
+      const ix0 = tx0 + 2, iy0 = ty0 + 5, iw = tx1 - 2 - ix0, ih = ty1 - 2 - iy0;
+      let budget = Math.floor((s % (CYCLE / CPS)) * CPS);
+      let row = 0, cRow = 0, cCol = 0;
+      for (let li = 0; li < SCRIPT.length && row < ih; li++) {
+        if (budget <= 0) break;
+        const line = SCRIPT[li];
+        const shown = isTyped(line) ? Math.min(line.length, budget) : line.length;
+        budget -= cost(line, shown);
+        for (let c = 0; c < shown && c < iw; c++) {
+          const ch = line[c];
+          if (ch === ' ') continue;
+          const i = (iy0 + row) * cols + ix0 + c;
+          if (i >= 0 && i < lum.length) { glyph[i] = ch; lum[i] = 0.7; }
+        }
+        cRow = row; cCol = Math.min(shown, iw);
+        row++;
+        if (shown < line.length) break;
+      }
+      // caret, blinking, parked wherever the typing got to
+      if ((s * 1.8) % 1 < 0.55) {
+        const i = (iy0 + cRow) * cols + ix0 + cCol;
+        if (i >= 0 && i < lum.length) { glyph[i] = '#'; lum[i] = 0.95; }
+      }
+
+      // mug beside the laptop, with steam
+      fillCells(0.04 * C, 0.795 * R, 0.115 * C, 0.868 * R, 0.72);
+      fillCells(0.115 * C, 0.815 * R, 0.128 * C, 0.845 * R, 0.72);
+      for (let k = 0; k < 4; k++) {
+        const yy = 0.795 * R - 2 - k * 1.7;
+        const xx = 0.075 * C + Math.sin(s * 2.2 + k * 0.9) * 1.6;
+        fillCells(xx, yy, xx + 1, yy + 1, 0.34 - k * 0.05);
+      }
+      // desk
+      fillCells(0.02 * C, 0.868 * R, 0.98 * C, 0.886 * R, 0.3);
+    }
+
     function sample() {
       const r = fig.getBoundingClientRect();
-      if (!r.width || !r.height || !img.naturalWidth) return false;
+      if (!r.width || !r.height || (!LIVE && !img.naturalWidth)) return false;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = Math.round(r.width); H = Math.round(r.height);
       cv.width = W * dpr; cv.height = H * dpr;
       cv.style.width = W + 'px'; cv.style.height = H + 'px';
       cols = Math.ceil(W / CELL); rows = Math.ceil(H / CELL);
+
+      if (LIVE) {
+        // authored, not sampled: brightness is chosen per element, so there is
+        // nothing to auto-level
+        lum = new Float32Array(cols * rows);
+        glyph = new Array(cols * rows).fill('');
+        span = 0;
+        return true;
+      }
 
       // read the source once into a luminance grid
       const off = document.createElement('canvas');
@@ -682,7 +828,8 @@
         const cy = y * CELL + CELL / 2;
         for (let x = 0; x < cols; x++) {
           const cx = x * CELL + CELL / 2;
-          const base = lum[y * cols + x];
+          const gi = y * cols + x;
+          const base = lum[gi];
           if (base < CUT) continue;
           let v = span ? Math.min(1, 0.18 + (base - CUT) * span) : base;
           const dx = cx - px, dy = cy - py;
@@ -691,7 +838,9 @@
           if (d2 < rad2) { t = 1 - Math.sqrt(d2) / rad; t = t * t * (3 - 2 * t); }
           v = Math.min(1, v * (1 + BOOST * t) + t * 0.14);
           if (v < 0.06) continue;
-          const ch = RAMP[Math.min(RAMP.length - 1, Math.round(v * (RAMP.length - 1)))];
+          // a forced glyph keeps its own character but still takes the torch's
+          // brightness and size, so the code on the screen lights up with everything else
+          const ch = (glyph && glyph[gi]) || RAMP[Math.min(RAMP.length - 1, Math.round(v * (RAMP.length - 1)))];
           if (ch === ' ') continue;
           const size = CELL * (0.82 + 0.5 * t);
           ctx.font = '700 ' + size.toFixed(1) + 'px "NeurealMono", ui-monospace, monospace';
@@ -710,7 +859,23 @@
       idleFrames = moving ? 0 : idleFrames + 1;
       raf = idleFrames > 20 ? (raf = null) : requestAnimationFrame(loop);
     }
+    // Claw'd animates on his own clock, throttled to 30fps — the easing rides along
+    // with it, so there is one loop rather than two fighting over the canvas.
+    function liveLoop(now) {
+      raf = null;
+      if (!inView) return;
+      if (now - lastFrame >= 33) {
+        lastFrame = now;
+        px += (tx - px) * EASE; py += (ty - py) * EASE;
+        scene(now); draw();
+      }
+      raf = requestAnimationFrame(liveLoop);
+    }
+
     function kick() {
+      // under reduced motion the scene is already parked on its finished screen and
+      // the torch snaps instead of easing, so a repaint is all that is needed
+      if (LIVE) { if (reduced) draw(); return; }
       if (reduced) { draw(); return; }
       if (!raf) { draw(); raf = requestAnimationFrame(loop); }   // paint now, then ease
     }
@@ -719,10 +884,16 @@
       const r = fig.getBoundingClientRect();
       if (!r.width) return;
       tx = e.clientX - r.left; ty = e.clientY - r.top;
-      if (px < -999) { px = tx; py = ty; }
+      // with no easing loop running, the torch has to be placed outright — otherwise
+      // it would stick wherever the pointer first entered
+      if (px < -999 || reduced) { px = tx; py = ty; }
       kick();
     }
-    function leave() { tx = -9999; ty = -9999; kick(); }
+    function leave() {
+      tx = -9999; ty = -9999;
+      if (reduced) { px = tx; py = ty; }
+      kick();
+    }
 
     fig.addEventListener('pointermove', aim, { passive: true });
     fig.addEventListener('pointerleave', leave, { passive: true });
@@ -732,12 +903,31 @@
     }, { passive: true });
     fig.addEventListener('touchend', leave, { passive: true });
 
-    function init() { if (sample()) { draw(); } }
-    if (img.complete && img.naturalWidth) init();
+    function init() {
+      if (!sample()) return;
+      if (!LIVE) { draw(); return; }
+      if (reduced) {
+        // park it on the finished screen: Claw'd still reads as coding, nothing moves
+        scene(TICKS / CPS * 1000); draw(); return;
+      }
+      // only run while it is on screen — this is the one card that never stops
+      io = new IntersectionObserver(es => {
+        es.forEach(e => {
+          inView = e.isIntersecting;
+          if (inView && !raf) { t0 = performance.now(); raf = requestAnimationFrame(liveLoop); }
+        });
+      }, { rootMargin: '120px' });
+      io.observe(fig);
+    }
+    if (LIVE || (img.complete && img.naturalWidth)) init();
     else img.addEventListener('load', init, { once: true });
     let rt = null;
     window.addEventListener('resize', () => {
-      clearTimeout(rt); rt = setTimeout(() => { if (sample()) draw(); }, 180);
+      clearTimeout(rt); rt = setTimeout(() => {
+        if (!sample()) return;
+        if (LIVE) { if (reduced) { scene(TICKS / CPS * 1000); draw(); } }
+        else draw();
+      }, 180);
     }, { passive: true });
   });
 })();

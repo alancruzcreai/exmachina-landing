@@ -90,7 +90,7 @@ ul,ol{list-style:none}
   align-items:flex-start;
   opacity:0;animation:dockIn .8s var(--ease) 2.9s forwards;
 }
-@keyframes dockIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+@keyframes dockIn{from{opacity:0}to{opacity:1}}
 .dock-link{
   position:relative;width:57px;height:57px;flex:0 0 auto;
   display:flex;align-items:center;justify-content:center;

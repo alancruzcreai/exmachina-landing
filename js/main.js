@@ -238,9 +238,16 @@
   ];
   const track = document.getElementById('mqtrack');
   if (track) {
+    // Only as many copies as it takes to cover the screen, then that pass is
+    // duplicated once for the seamless -50% loop. It used to hard-code 20 per pass,
+    // which with four logos meant each one appearing ten times — it stopped reading
+    // as a carousel of clients and started reading as a list.
+    const ancho = 200 + 24;                                   // item + gap, worst case
+    const porPasada = Math.max(LOGOS.length,
+      Math.ceil((window.innerWidth * 1.25) / ancho / LOGOS.length) * LOGOS.length);
     let html = '';
     for (let rep = 0; rep < 2; rep++) {         // duplicated track for seamless -50% loop
-      for (let i = 0; i < 20; i++) {            // 20 logos per pass
+      for (let i = 0; i < porPasada; i++) {
         const [img, name] = LOGOS[i % LOGOS.length];
         html += `<div class="mq-item"${rep ? ' aria-hidden="true"' : ''}><img src="img/${img}.webp" alt="${rep ? '' : name}" loading="lazy" width="300" height="135"></div>`;
       }

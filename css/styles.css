@@ -290,18 +290,14 @@ ul,ol{list-style:none}
 /* Crossfade: the outgoing frame keeps drifting while the incoming one settles, so
    the change never reads as a cut. will-change is set only on the two slides in
    play — pinning all four costs real memory on phones and causes the stutter. */
-/* A wipe, not a dissolve. Two opaque photographs cross-faded on opacity spend half
-   a second at 50/50, and with portraits that reads as a double exposure — muddy,
-   like a mistake. The incoming frame is revealed by an expanding clip instead, so
-   at every instant one photograph is on screen, whole. */
+/* Crossfade: the outgoing frame keeps drifting while the incoming one settles, so
+   the change never reads as a cut. will-change is set only on the two slides in
+   play — pinning all four costs real memory on phones and causes the stutter. */
 .hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;
-  clip-path:inset(0 0 0 100%);
-  transition:opacity .28s linear,clip-path .95s cubic-bezier(.62,.02,.2,1)}
-.hero-slide.is-active,.hero-slide.is-leaving{will-change:clip-path}
-/* the incoming frame is opaque from the first instant and the clip does the work */
-.hero-slide.is-active{opacity:1;z-index:2;clip-path:inset(0)}
-/* the outgoing one stays whole underneath until it is completely covered */
-.hero-slide.is-leaving{z-index:1;opacity:1;clip-path:inset(0);transition:none}
+  transition:opacity .95s cubic-bezier(.33,0,.15,1)}
+.hero-slide.is-active,.hero-slide.is-leaving{will-change:opacity}
+.hero-slide.is-active{opacity:1;z-index:2}
+.hero-slide.is-leaving{z-index:1}
 /* parallax lives on the wrapper, ken burns on the image: two transforms that
    would otherwise overwrite each other */
 /* no CSS transition here on purpose: the JS lerp already smooths the drift, and
@@ -318,9 +314,12 @@ ul,ol{list-style:none}
    erase the baked-in wordmark, and that patch was poor: smears and blocks over an
    eye. Any drift dragged the mess into view. The photographs are clean now, so
    there is nothing underneath to uncover and the layer can move freely. */
-.hero-letter{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+/* The wordmark is the complete artwork now, not the crop that was baked into the
+   old photographs — so it gets padding instead of bleed: contain fits it whole and
+   the inset keeps its ends clear of the edges. Nothing of EX MACHINA is cut. */
+.hero-letter{position:absolute;inset:clamp(18px,4vw,64px);z-index:4;pointer-events:none}
 .hero-letter picture{display:block;width:100%;height:100%;
-  transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1.02)}
+  transform:translate3d(var(--lx,0px),var(--ly,0px),0)}
 .hero-letter img{width:100%;height:100%;object-fit:contain;object-position:center 48%;
   filter:drop-shadow(0 10px 30px rgba(0,0,0,.34))}
 
@@ -649,7 +648,7 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
   .hero{height:100svh;min-height:560px}
   .hero-slide picture{transform:translate3d(var(--px,0px),var(--py,0px),0) scale(1.03)}
   .hero-slide img{object-fit:cover;object-position:center 42%}
-  .hero-letter picture{transform:translate3d(var(--lx,0px),var(--ly,0px),0) scale(1)}
+  .hero-letter picture{transform:translate3d(var(--lx,0px),var(--ly,0px),0)}
   .hero-slide img{object-position:center 50%;transform:none}
   .hero-slide.is-active img{animation:none}
   .hero-dots{bottom:calc(104px + env(safe-area-inset-bottom))}
@@ -662,11 +661,14 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
 /* ---------- REDUCED MOTION ---------- */
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  .marquee-track{animation:none;flex-wrap:wrap;width:auto}
+  /* NO flex-wrap here. It turned the carousel into a two-column grid, and since the
+     track carries a duplicated pass for the seamless loop, every copy rendered as a
+     stacked list — screens of the same four logos. It stays one animated row. */
+  .mq-item{width:clamp(150px,42vw,200px)}
   /* keep the dissolve and the progress bar — drop only the movement */
   .hero-slide.is-active img{animation:none;transform:none}
   .hero-slide picture{transform:none}
-  .hero-slide{transition:opacity .28s linear,clip-path .7s cubic-bezier(.62,.02,.2,1)}
+  .hero-slide{transition:opacity .6s ease}
   .loader{animation-delay:.4s}
   .loader-plus{animation:none}
   [data-ilum] .w{opacity:1 !important}

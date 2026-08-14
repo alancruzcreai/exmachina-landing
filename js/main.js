@@ -621,7 +621,7 @@
     fig.appendChild(cv);
     const ctx = cv.getContext('2d', { alpha: true });
 
-    let cols = 0, rows = 0, lum = null, dpr = 1, W = 0, H = 0;
+    let cols = 0, rows = 0, lum = null, dpr = 1, W = 0, H = 0, span = 0;
     let px = -9999, py = -9999, tx = -9999, ty = -9999;
     let raf = null, idleFrames = 0;
 
@@ -652,6 +652,21 @@
         // there is no hover at all and the grid would be almost blank otherwise
         lum[i] = Math.pow(l, 0.78);
       }
+
+      // Auto-level, only for the cut variant. Once the background is dropped what
+      // survives is the silhouette alone, and in this portrait it never rises past
+      // ~.36 — as white over the dark plate that read fine, but brand orange carries
+      // about a fifth of white's luminance and, with no plate behind it, the same
+      // alpha collapsed to ~2:1 against the section. So stretch whatever survives up
+      // to full opacity instead of hard-coding a brighter alpha: it stays correct if
+      // the photo is ever swapped. The floor keeps the dimmest cells inside the
+      // silhouette rather than punching holes in it.
+      span = 0;
+      if (CUT > 0) {
+        let mx = 0;
+        for (let i = 0; i < lum.length; i++) if (lum[i] > mx) mx = lum[i];
+        if (mx > CUT + 0.02) span = 0.82 / (mx - CUT);
+      }
       return true;
     }
 
@@ -669,7 +684,7 @@
           const cx = x * CELL + CELL / 2;
           const base = lum[y * cols + x];
           if (base < CUT) continue;
-          let v = base;
+          let v = span ? Math.min(1, 0.18 + (base - CUT) * span) : base;
           const dx = cx - px, dy = cy - py;
           const d2 = dx * dx + dy * dy;
           let t = 0;

@@ -249,9 +249,22 @@
 
   /* ---------- MARQUEE ---------- */
   const LOGOS = [
-    ['logo_fender', 'Fender'], ['logo_ax', 'Armani Exchange'],
-    ['logo_cacao', 'Cacao Nativa'], ['logo_un', 'United Nations']
+    ['logo_walgreens', 'Walgreens'], ['logo_iza', 'IZA'], ['logo_bcp', 'BCP'],
+    ['logo_joffroy', 'Joffroy'], ['logo_vuori', 'Vuori'], ['logo_saucony', 'Saucony'],
+    ['logo_cedim', 'CEDIM'], ['logo_brillamont', 'Brillamont'],
+    ['logo_interceramic', 'Interceramic'], ['logo_buendia', 'BuenDía'],
+    ['logo_banregio', 'Banregio'], ['logo_cemex', 'CEMEX'], ['logo_cat', 'CAT'],
+    ['logo_chevrolet', 'Chevrolet'], ['logo_un', 'United Nations'],
+    ['logo_armani_exchange', 'Armani Exchange'], ['logo_cacao_nativa', 'Cacao Nativa'],
+    ['logo_fender', 'Fender']
   ];
+  // A different running order on every visit, so the wall never reads as a fixed
+  // ranking. Shuffled ONCE and then repeated: the two passes have to carry the same
+  // sequence or the loop jumps at the seam.
+  for (let i = LOGOS.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [LOGOS[i], LOGOS[j]] = [LOGOS[j], LOGOS[i]];
+  }
   const track = document.getElementById('mqtrack');
   if (track) {
     // Only as many copies as it takes to cover the screen, then that pass is

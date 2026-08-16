@@ -8,6 +8,25 @@
   /* ---------- LOADER ---------- */
   const loader = document.getElementById('loader');
   let loaderDone = false;
+  // una recarga por cambio de idioma no debe sentirse como entrar de nuevo al sitio
+  let sinIntro = false, scrollGuardado = 0;
+  try {
+    sinIntro = sessionStorage.getItem('exm-sin-intro') === '1';
+    scrollGuardado = parseInt(sessionStorage.getItem('exm-scroll') || '0', 10) || 0;
+    sessionStorage.removeItem('exm-sin-intro');
+    sessionStorage.removeItem('exm-scroll');
+  } catch (e) {}
+  if (sinIntro && loader) {
+    loader.remove(); loaderDone = true;
+    if (scrollGuardado) {
+      // tras las fuentes: antes, el alto de la página todavía no es el definitivo
+      const volver = () => window.scrollTo(0, scrollGuardado);
+      volver();
+      if (document.fonts) document.fonts.ready.then(() => setTimeout(volver, 60));
+      window.addEventListener('load', () => setTimeout(volver, 80), { once: true });
+    }
+    document.dispatchEvent(new CustomEvent('exm:herolive'));
+  }
   function closeLoader() {
     if (loaderDone) return; loaderDone = true;
     loader.classList.add('is-done');
@@ -292,6 +311,7 @@
   const hero = document.querySelector('.hero');
   const slides = [...document.querySelectorAll('.hero-slide')];
   const dots = [...document.querySelectorAll('.hero-dots .dot')];
+  const lines = [...document.querySelectorAll('.hero-line')];
   const fills = dots.map(d => d.querySelector('.dot-fill'));
   const FADE = 950;           // must match the CSS crossfade
   const HOLD = 4000;          // one rhythm for auto and manual — predictable
@@ -337,6 +357,9 @@
         d.classList.toggle('is-active', k === cur);
         d.setAttribute('aria-selected', k === cur ? 'true' : 'false');
       });
+      // the line belongs to its frame, but it swaps on its own shorter clock — at
+      // the photograph's pace both lines would sit on screen at once, half faded
+      lines.forEach((l, k) => l.classList.toggle('is-active', k === cur));
     }
     restart(fills[cur]);                           // progress bar back to zero
     preload(cur + 1);
@@ -975,4 +998,48 @@
       }, 180);
     }, { passive: true });
   });
+})();
+
+/* ================= TEMA =================
+   El tema ya se aplicó antes del primer pintado (script en el <head>); aquí sólo
+   viven los controles. El idioma vive en i18n.js, que corre antes que este
+   archivo por la razón que se explica allí. */
+(function tema() {
+  'use strict';
+  const raiz = document.documentElement;
+  const DIC = window.__EXM_I18N || {};
+  const enIngles = raiz.lang === 'en';
+
+  const oscuroDelSistema = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const actual = () => raiz.getAttribute('data-theme') || (oscuroDelSistema() ? 'dark' : 'light');
+
+  function pintar() {
+    const oscuro = actual() === 'dark';
+    document.querySelectorAll('[data-tema]').forEach(b => {
+      b.setAttribute('aria-pressed', oscuro ? 'true' : 'false');
+      const t = b.querySelector('.tema-txt');
+      if (!t) return;
+      // la etiqueta dice a dónde te lleva, no dónde estás
+      t.textContent = enIngles
+        ? (oscuro ? DIC['ui.temaClaro'] || 'Light mode' : DIC['ui.tema'] || 'Dark mode')
+        : (oscuro ? 'Modo claro' : 'Modo oscuro');
+    });
+  }
+  function poner(t) {
+    raiz.setAttribute('data-theme', t);
+    try { localStorage.setItem('exm-tema', t); } catch (e) {}
+    // la clase sólo vive lo que dura el cambio: dejar transiciones puestas en todo
+    // el árbol encarece cada repintado posterior
+    raiz.classList.add('tema-cambiando');
+    setTimeout(() => raiz.classList.remove('tema-cambiando'), 400);
+    pintar();
+  }
+  document.querySelectorAll('[data-tema]').forEach(b => {
+    b.addEventListener('click', () => poner(actual() === 'dark' ? 'light' : 'dark'));
+  });
+  // sin elección manual, seguir al sistema si cambia en vivo
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (!raiz.hasAttribute('data-theme')) pintar();
+  });
+  pintar();
 })();

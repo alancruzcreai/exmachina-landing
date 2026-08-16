@@ -17,7 +17,18 @@
 <link rel="preload" href="fonts/NTDapperTrial-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Jabin-BoldSwash2.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/OONeurealTrial-SemiMono.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/styles.css?v=70">
+<link rel="stylesheet" href="css/styles.css?v=73">
+<script>
+/* Antes del primer pintado: si esto viviera en main.js la página se dibujaría en
+   claro y saltaría a oscuro. Lee la preferencia guardada; si no hay ninguna, no
+   fija nada y manda el sistema operativo. */
+(function(){try{
+  var t=localStorage.getItem('exm-tema');
+  if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('exm-idioma');
+  if(l==='en'||l==='es')document.documentElement.lang=l;
+}catch(e){}})();
+</script>
 </head>
 <body>
 
@@ -96,6 +107,19 @@
         <li style="--i:5"><a class="dock-menu-secondary-link" href="mailto:contacto@exmachina.work">contacto@exmachina.work</a></li>
         <li style="--i:6"><a class="dock-menu-secondary-link" href="tel:+528115543225">(+52) 811 554 3225</a></li>
       </ul>
+      <div class="dock-menu-tools" style="--i:6">
+        <div class="lang" role="group" aria-label="Idioma / Language">
+          <button type="button" class="lang-b is-on" data-lang="es" aria-pressed="true">ES</button>
+          <span class="lang-sep" aria-hidden="true"></span>
+          <button type="button" class="lang-b" data-lang="en" aria-pressed="false">EN</button>
+        </div>
+        <button type="button" class="tema" data-tema aria-pressed="false">
+          <span class="tema-txt" data-i18n="ui.tema">Modo oscuro</span>
+          <span class="tema-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" fill="currentColor" class="tema-sol"/><g class="tema-rayos" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 1.6v2.6M12 19.8v2.6M22.4 12h-2.6M4.2 12H1.6M19.35 4.65l-1.84 1.84M6.49 17.51l-1.84 1.84M19.35 19.35l-1.84-1.84M6.49 6.49L4.65 4.65"/></g><path class="tema-luna" d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z" fill="currentColor"/></svg>
+          </span>
+        </button>
+      </div>
       <ul class="dock-menu-socials" role="list" style="--i:7">
         <li><a class="dock-soc" href="https://www.instagram.com/" target="_blank" rel="noopener" aria-label="Instagram" data-pending><svg viewBox="0 0 12 12" fill="none" aria-hidden="true" class="dock-soc-icon"><g transform="translate(0.75 0.75)" stroke="currentColor" stroke-linejoin="round"><path d="M0.5 5.25C0.5 7.48917 0.5 8.60876 1.19562 9.30438C1.89124 10 3.01083 10 5.25 10C7.48917 10 8.60876 10 9.30438 9.30438C10 8.60876 10 7.48917 10 5.25C10 3.01083 10 1.89124 9.30438 1.19562C8.60876 0.5 7.48917 0.5 5.25 0.5C3.01083 0.5 1.89124 0.5 1.19562 1.19562C0.5 1.89124 0.5 3.01083 0.5 5.25Z"></path><path d="M7.5 5.25C7.5 4.00736 6.49264 3 5.25 3C4.00736 3 3 4.00736 3 5.25C3 6.49264 4.00736 7.5 5.25 7.5C6.49264 7.5 7.5 6.49264 7.5 5.25Z"></path><path d="M8.00391 8L7.99942 8" stroke-linecap="round"></path></g></svg></a></li>
         <li><a class="dock-soc" href="https://www.linkedin.com/" target="_blank" rel="noopener" aria-label="LinkedIn" data-pending><svg viewBox="0 0 12 12" fill="none" aria-hidden="true" class="dock-soc-icon"><g transform="translate(1.25 1.25)" fill="currentColor"><path d="M2.25 8.375L2.25 4.375C2.25 4.25892 2.25 4.20087 2.24518 4.15198C2.19842 3.67721 1.82279 3.30158 1.34802 3.25482C1.29913 3.25 1.24108 3.25 1.125 3.25C1.00892 3.25 0.950873 3.25 0.901983 3.25482C0.427206 3.30158 0.0515767 3.67721 0.00481527 4.15198C0 4.20087 0 4.25892 0 4.375L0 8.375C0 8.49108 0 8.54913 0.00481527 8.59802C0.0515767 9.07279 0.427206 9.44842 0.901983 9.49518C0.950873 9.5 1.00892 9.5 1.125 9.5C1.24108 9.5 1.29913 9.5 1.34802 9.49518C1.82279 9.44842 2.19842 9.07279 2.24518 8.59802C2.25 8.54913 2.25 8.49108 2.25 8.375Z"></path><path d="M2.25 1.125C2.25 1.74632 1.74632 2.25 1.125 2.25C0.50368 2.25 0 1.74632 0 1.125C0 0.50368 0.50368 0 1.125 0C1.74632 0 2.25 0.50368 2.25 1.125Z"></path><path d="M4.66302 3.25H4.25C3.7786 3.25 3.54289 3.25 3.39645 3.39645C3.25 3.54289 3.25 3.7786 3.25 4.25L3.25 8.5C3.25 8.9714 3.25 9.20711 3.39645 9.35355C3.54289 9.5 3.7786 9.5 4.25 9.5H4.5C4.97141 9.5 5.20711 9.5 5.35356 9.35356C5.5 9.20711 5.50001 8.97141 5.50001 8.50001L5.50003 6.75006C5.50003 5.92163 5.76406 5.25006 6.54393 5.25006C6.93387 5.25006 7.24998 5.58585 7.24998 6.00006V8.25006C7.24998 8.72146 7.24998 8.95717 7.39643 9.10361C7.54287 9.25006 7.77858 9.25006 8.24998 9.25006H8.49936C8.97066 9.25006 9.20632 9.25006 9.35275 9.10366C9.49919 8.95725 9.49925 8.7216 9.49936 8.2503L9.50003 5.50012C9.50003 4.25748 8.31819 3.25012 7.14838 3.25012C6.48247 3.25012 5.88833 3.57654 5.50003 4.08698C5.50002 3.77197 5.50001 3.61447 5.43158 3.4975C5.38824 3.42343 5.32657 3.36177 5.2525 3.31843C5.13553 3.25 4.97803 3.25 4.66302 3.25Z"></path></g></svg></a></li>
@@ -110,6 +134,19 @@
     <svg class="brand-word" viewBox="0 0 1440 160"><use href="#lgWord"/><use href="#lgPlus"/></svg>
     <svg class="brand-script" viewBox="-56 113 1350 221"><use href="#lgScript"/></svg>
   </a>
+  <div class="hdr-tools">
+    <div class="lang" role="group" aria-label="Idioma / Language">
+      <button type="button" class="lang-b is-on" data-lang="es" aria-pressed="true">ES</button>
+      <span class="lang-sep" aria-hidden="true"></span>
+      <button type="button" class="lang-b" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <button type="button" class="tema" data-tema aria-pressed="false">
+      <span class="tema-txt" data-i18n="ui.tema">Modo oscuro</span>
+      <span class="tema-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" fill="currentColor" class="tema-sol"/><g class="tema-rayos" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 1.6v2.6M12 19.8v2.6M22.4 12h-2.6M4.2 12H1.6M19.35 4.65l-1.84 1.84M6.49 17.51l-1.84 1.84M19.35 19.35l-1.84-1.84M6.49 6.49L4.65 4.65"/></g><path class="tema-luna" d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z" fill="currentColor"/></svg>
+      </span>
+    </button>
+  </div>
 </header>
 
 <main id="main">
@@ -119,19 +156,19 @@
   <div class="hero-slides">
     <figure class="hero-slide is-active"><picture>
       <source media="(max-width:720px)" srcset="img/hero_a_m.webp">
-      <img src="img/hero_a.webp" alt="Primer plano de un rostro con la mano en la sien, mirando a cámara" fetchpriority="high">
+      <img src="img/hero_a.webp" alt="Mujer recargada en un muro, con la luz del sol cruzándole el rostro" fetchpriority="high">
     </picture></figure>
     <figure class="hero-slide"><picture>
       <source media="(max-width:720px)" srcset="img/hero_b_m.webp">
-      <img src="img/hero_b.webp" alt="Retrato a contraluz de una mujer pelirroja al atardecer" loading="lazy">
+      <img src="img/hero_b.webp" alt="Hombre de gorra y lentes de sol, de perfil contra el cielo" loading="lazy">
     </picture></figure>
     <figure class="hero-slide"><picture>
       <source media="(max-width:720px)" srcset="img/hero_c_m.webp">
-      <img src="img/hero_c.webp" alt="Figura saltando contra el cielo, vista desde abajo" loading="lazy">
+      <img src="img/hero_c.webp" alt="Mujer con lentes al aire libre, mirando a cámara" loading="lazy">
     </picture></figure>
     <figure class="hero-slide"><picture>
       <source media="(max-width:720px)" srcset="img/hero_d_m.webp">
-      <img src="img/hero_d.webp" alt="Espalda desnuda de una figura abrazándose, sobre fondo neutro" loading="lazy">
+      <img src="img/hero_d.webp" alt="Primerísimo plano de un ojo" loading="lazy">
     </picture></figure>
   </div>
   <div class="hero-letter" aria-hidden="true">
@@ -139,6 +176,12 @@
       <source media="(max-width:720px)" srcset="img/lettering_m.webp">
       <img src="img/lettering.webp" alt="" fetchpriority="high">
     </picture>
+  </div>
+  <div class="hero-copy" aria-live="polite">
+    <p class="hero-line is-active" data-i18n-html="hero.1">Representa<br>un cambio<br>emocional</p>
+    <p class="hero-line" data-i18n-html="hero.2">Reimagina<br>visiones que<br>trascienden</p>
+    <p class="hero-line" data-i18n-html="hero.3">Replantea<br>Estrategias<br>Tecnológicas</p>
+    <p class="hero-line" data-i18n-html="hero.4">Diseña<br>Nuevos<br>Horizontes</p>
   </div>
   <div class="hero-dots" role="tablist" aria-label="Imágenes del carrusel">
     <button class="dot is-active" role="tab" aria-selected="true" aria-label="Imagen 1 de 4"><span class="dot-fill"></span></button>
@@ -151,9 +194,9 @@
 <!-- INTRO -->
 <section class="intro wrap">
   <div class="intro-txt">
-    <p class="eyebrow" data-reveal>DISEÑO REAL, MÁXIMA VELOCIDAD</p>
-    <h1 class="intro-h" data-reveal>Branding, experiencias web y software a la medida para la era digital desde el 2013</h1>
-    <p class="intro-p" data-reveal>Lo diseñamos nosotros —la inteligencia artificial solo nos hace ir más rápido y llegar más lejos. Soluciones 100% personalizadas (y personalizables), cero plantillas, diseñadas para negocios de toda Latinoamérica.</p>
+    <p class="eyebrow" data-reveal data-i18n="intro.eyebrow">DISEÑO REAL, MÁXIMA VELOCIDAD</p>
+    <h1 class="intro-h" data-reveal data-i18n="intro.h">Branding, experiencias web y software a la medida para la era digital desde el 2013</h1>
+    <p class="intro-p" data-reveal data-i18n="intro.p">Lo diseñamos nosotros —la inteligencia artificial solo nos hace ir más rápido y llegar más lejos. Soluciones 100% personalizadas (y personalizables), cero plantillas, diseñadas para negocios de toda Latinoamérica.</p>
   </div>
   <figure class="intro-img" data-clip><img src="img/intro_statue.webp" alt="Estatua dorada sobre un edificio clásico" loading="lazy"></figure>
 </section>
@@ -167,34 +210,34 @@
         <span class="c-naranja">Tu marca acompañada por</span><br>
         <span class="c-blanco">un equipo altamente especializado.</span>
       </h2>
-      <p class="oport-sub c-naranja" data-ilum>Los únicos 3 servicios necesarios para que tu negocio se mantenga relevante en un mundo tan cambiante:</p>
+      <p class="oport-sub c-naranja" data-ilum data-i18n="serv.sub">Los únicos 3 servicios necesarios para que tu negocio se mantenga relevante en un mundo tan cambiante:</p>
     </div>
     <ul class="servs" data-reveal-group>
       <li class="serv" style="--edge:#c2c4c8; --deep:#7e8085" tabindex="0">
         <figure class="serv-img"><img src="img/serv_branding.webp" alt="" loading="lazy"></figure>
         <span class="serv-num">01</span>
         <div class="serv-body">
-          <h3 class="serv-t">Branding.</h3>
+          <h3 class="serv-t" data-i18n="serv.1.t">Branding.</h3>
           <svg class="plus serv-plus" viewBox="0 0 160 160"><use href="#plusIcon"/></svg>
-          <p class="serv-d">Sistemas de identidad visual que escalan contigo. Desde una cara nueva hasta apropiarse de una categoría: trabajo elemental, funcional y atemporal.</p>
+          <p class="serv-d" data-i18n="serv.1.d">Sistemas de identidad visual que escalan contigo. Desde una cara nueva hasta apropiarse de una categoría: trabajo elemental, funcional y atemporal.</p>
         </div>
       </li>
       <li class="serv" style="--edge:#b4b5b8; --deep:#737478" tabindex="0">
         <figure class="serv-img"><img src="img/serv_web.webp" alt="" loading="lazy"></figure>
         <span class="serv-num">02</span>
         <div class="serv-body">
-          <h3 class="serv-t">Experiencias Web</h3>
+          <h3 class="serv-t" data-i18n="serv.2.t">Experiencias Web</h3>
           <svg class="plus serv-plus" viewBox="0 0 160 160"><use href="#plusIcon"/></svg>
-          <p class="serv-d">Interfaces intuitivas que convierten la primera impresión en resultados. De una landing page a una tienda en línea, adaptadas a tu momento de crecimiento.</p>
+          <p class="serv-d" data-i18n="serv.2.d">Interfaces intuitivas que convierten la primera impresión en resultados. De una landing page a una tienda en línea, adaptadas a tu momento de crecimiento.</p>
         </div>
       </li>
       <li class="serv" style="--edge:#85837a; --deep:#4e4c45" tabindex="0">
         <figure class="serv-img"><img src="img/serv_ia.webp" alt="" loading="lazy"></figure>
         <span class="serv-num">03</span>
         <div class="serv-body">
-          <h3 class="serv-t">Software con agentes de IA</h3>
+          <h3 class="serv-t" data-i18n="serv.3.t">Software con agentes de IA</h3>
           <svg class="plus serv-plus" viewBox="0 0 160 160"><use href="#plusIcon"/></svg>
-          <p class="serv-d">Entendemos tu operación y la automatizamos: dashboards, cotizadores en línea, gestores de mensajería. Tú nos muestras tu industria, nosotros hacemos el resto.</p>
+          <p class="serv-d" data-i18n="serv.3.d">Entendemos tu operación y la automatizamos: dashboards, cotizadores en línea, gestores de mensajería. Tú nos muestras tu industria, nosotros hacemos el resto.</p>
         </div>
       </li>
     </ul>
@@ -203,7 +246,7 @@
 
 <!-- STATEMENT + CLIENTES -->
 <section class="clients">
-  <h2 class="statement wrap" data-ilum>Desde el 2013, nuestro trabajo ha abarcado múltiples industrias, haciendo sinergia con diferentes negocios, personas y organizaciones</h2>
+  <h2 class="statement wrap" data-ilum data-i18n="cli.statement">Desde el 2013, nuestro trabajo ha abarcado múltiples industrias, haciendo sinergia con diferentes negocios, personas y organizaciones</h2>
   <div class="marquee" data-reveal aria-label="Clientes: Walgreens, IZA, BCP, Joffroy, Vuori, Saucony, CEDIM, Brillamont, Interceramic, BuenDía, Banregio, CEMEX, CAT, Chevrolet, United Nations, Armani Exchange, Cacao Nativa y Fender">
     <div class="marquee-track" id="mqtrack">
       <!-- filled by JS: 4 logos x5 x2 -->
@@ -224,45 +267,45 @@
       <img src="img/eagle.webp" alt="Águila del escudo mexicano" width="150" height="152" loading="lazy">
       <span class="mono c-naranja">26</span>
     </div>
-    <p class="mono-block" data-reveal>SOMOS UN EQUIPO QUE HA TRABAJADO ACTIVAMENTE EN LAS INDUSTRIAS CREATIVAS NACIONALES E INTERNACIONALES DESDE EL 2013</p>
+    <p class="mono-block" data-reveal data-i18n="somos.mono">SOMOS UN EQUIPO QUE HA TRABAJADO ACTIVAMENTE EN LAS INDUSTRIAS CREATIVAS NACIONALES E INTERNACIONALES DESDE EL 2013</p>
   </div>
 
   <ol class="mani wrap">
     <li class="mani-item">
       <span class="mani-ghost mono" aria-hidden="true">01/06</span>
       <span class="mani-num mono">01</span>
-      <h3 class="mani-h u-font" data-ilum>EXPERIENCIA HUMANA COMBINADA CON <span class="mk-circle">INTELIGENCIA ARTIFICIAL</span></h3>
-      <p class="mani-p" data-ilum>lo mejor de 2 mundos, la narrativa actual habla de la IA para pensar por los humanos, en ExMachina usamos la IA para que los humanos puedan llegar a ser la mejor versión de ellos mismos, sus ideas y sus negocios</p>
+      <h3 class="mani-h u-font" data-ilum data-i18n-html="mani.1.h">EXPERIENCIA HUMANA COMBINADA CON <span class="mk-circle">INTELIGENCIA ARTIFICIAL</span></h3>
+      <p class="mani-p" data-ilum data-i18n="mani.1.p">lo mejor de 2 mundos, la narrativa actual habla de la IA para pensar por los humanos, en ExMachina usamos la IA para que los humanos puedan llegar a ser la mejor versión de ellos mismos, sus ideas y sus negocios</p>
     </li>
     <li class="mani-item">
       <span class="mani-ghost mono" aria-hidden="true">02/06</span>
       <span class="mani-num mono">02</span>
-      <h3 class="mani-h u-font" data-ilum>TECNOLOGÍA <em class="mk-gr">Latina</em> DE ALCANCE GLOBAL</h3>
-      <p class="mani-p" data-ilum>creemos que la buena tecnología debe verse y sentirse bien, también creemos que debe ser accesible para todo negocio en Latinoamérica.</p>
+      <h3 class="mani-h u-font" data-ilum data-i18n-html="mani.2.h">TECNOLOGÍA <em class="mk-gr">Latina</em> DE ALCANCE GLOBAL</h3>
+      <p class="mani-p" data-ilum data-i18n="mani.2.p">creemos que la buena tecnología debe verse y sentirse bien, también creemos que debe ser accesible para todo negocio en Latinoamérica.</p>
     </li>
     <li class="mani-item">
       <span class="mani-ghost mono" aria-hidden="true">03/06</span>
       <span class="mani-num mono">03</span>
-      <h3 class="mani-h u-font" data-ilum>SOMOS MENTES MULTIDISCIPLINARIAS Y <span class="mk-ul">ALTAMENTE CURIOSAS</span></h3>
-      <p class="mani-p" data-ilum>diseñadores, maestras en relaciones internacionales, consultoras en negocios e innovación, marketeros digitales, nuestro equipo estudia y trata de entender la dinámica social de nuestro mundo actual desde un análisis cultural constante y satisfacción de curiosidad</p>
+      <h3 class="mani-h u-font" data-ilum data-i18n-html="mani.3.h">SOMOS MENTES MULTIDISCIPLINARIAS Y <span class="mk-ul">ALTAMENTE CURIOSAS</span></h3>
+      <p class="mani-p" data-ilum data-i18n="mani.3.p">diseñadores, maestras en relaciones internacionales, consultoras en negocios e innovación, marketeros digitales, nuestro equipo estudia y trata de entender la dinámica social de nuestro mundo actual desde un análisis cultural constante y satisfacción de curiosidad</p>
     </li>
     <li class="mani-item">
       <span class="mani-ghost mono" aria-hidden="true">04/06</span>
       <span class="mani-num mono">04</span>
-      <h3 class="mani-h u-font" data-ilum>MÁXIMA VELOCIDAD SIN COMPROMETER CALIDAD NI COMPROMISO CON LA <span class="mk-crown">EXCELENCIA</span></h3>
-      <p class="mani-p" data-ilum>gracias a nuestra experiencia y nuestra forma de trabajar con los últimos modelos en inteligencia artificial, hoy tenemos la capacidad para materializar varias visiones simultáneamente, de forma eficaz y siempre manteniendo calidad internacional</p>
+      <h3 class="mani-h u-font" data-ilum data-i18n-html="mani.4.h">MÁXIMA VELOCIDAD SIN COMPROMETER CALIDAD NI COMPROMISO CON LA <span class="mk-crown">EXCELENCIA</span></h3>
+      <p class="mani-p" data-ilum data-i18n="mani.4.p">gracias a nuestra experiencia y nuestra forma de trabajar con los últimos modelos en inteligencia artificial, hoy tenemos la capacidad para materializar varias visiones simultáneamente, de forma eficaz y siempre manteniendo calidad internacional</p>
     </li>
     <li class="mani-item">
       <span class="mani-ghost mono" aria-hidden="true">05/06</span>
       <span class="mani-num mono">05</span>
-      <h3 class="mani-h u-font" data-ilum>DISEÑO Y TECNOLOGÍA UNA NUEVA <em class="mk-gr">Unidad</em></h3>
-      <p class="mani-p" data-ilum>no hay industria donde el poder del buen diseño, combinado con inteligencia artificial y análisis estratégico no genere un cambio disruptivo, escalable, automatizado y altamente monetizable</p>
+      <h3 class="mani-h u-font" data-ilum data-i18n-html="mani.5.h">DISEÑO Y TECNOLOGÍA UNA NUEVA <em class="mk-gr">Unidad</em></h3>
+      <p class="mani-p" data-ilum data-i18n="mani.5.p">no hay industria donde el poder del buen diseño, combinado con inteligencia artificial y análisis estratégico no genere un cambio disruptivo, escalable, automatizado y altamente monetizable</p>
     </li>
     <li class="mani-item">
       <span class="mani-ghost mono" aria-hidden="true">06/06</span>
       <span class="mani-num mono">06</span>
-      <h3 class="mani-h u-font" data-ilum>TRABAJAMOS DESDE CUALQUIER PARTE DEL <span class="mk-hl">MUNDO</span></h3>
-      <p class="mani-p" data-ilum>somos almas viajeras que se nutren de compartir y vivir experiencias nuevas, esto no nos impide colaborar activamente en múltiples usos horarios y cuando coincidamos en el mismo lugar, te invitamos a comer o por un café</p>
+      <h3 class="mani-h u-font" data-ilum data-i18n-html="mani.6.h">TRABAJAMOS DESDE CUALQUIER PARTE DEL <span class="mk-hl">MUNDO</span></h3>
+      <p class="mani-p" data-ilum data-i18n="mani.6.p">somos almas viajeras que se nutren de compartir y vivir experiencias nuevas, esto no nos impide colaborar activamente en múltiples usos horarios y cuando coincidamos en el mismo lugar, te invitamos a comer o por un café</p>
     </li>
   </ol>
 </section>
@@ -324,14 +367,14 @@
 
 <!-- EQUIPO -->
 <section class="equipo-sec" id="equipo">
-  <h2 class="equipo-h mono wrap" data-reveal>Equipo</h2>
+  <h2 class="equipo-h mono wrap" data-reveal data-i18n="team.h">Equipo</h2>
   <div class="equipo-card">
     <article class="member">
       <figure class="member-ph" data-clip data-ascii="orange cutout"><img src="img/team_kyra.webp" alt="Retrato en arte ASCII de Kyra Nuñez" loading="lazy"></figure>
       <div class="member-txt">
         <h3 class="member-name jabin" data-reveal>Kyra</h3>
         <p class="member-caps" data-reveal>KYRA NUÑEZ</p>
-        <p class="member-role" data-reveal>Operaciones &amp; Gestión</p>
+        <p class="member-role" data-reveal data-i18n="team.kyra">Operaciones &amp; Gestión</p>
         <p class="member-bio mono" data-reveal>As co-founder and Delivery Manager at ExMachina, I own end-to-end delivery across simultaneous client projects spanning real estate, architecture, wellness, and tech — serving as the bridge between the technical team and business stakeholders. I run projects on a disciplined sprint cadence with formal delivery milestones, and I've built the internal tooling, protocols, and escalation frameworks that keep the operation running without margin for error. Google Project Management Certificate.</p>
       </div>
     </article>
@@ -340,7 +383,7 @@
       <div class="member-txt">
         <h3 class="member-name jabin" data-reveal>Cecilia</h3>
         <p class="member-caps" data-reveal>CECILIA VALDEZ</p>
-        <p class="member-role" data-reveal>Consultora en diseño, innovación y negocios</p>
+        <p class="member-role" data-reveal data-i18n="team.ceci">Consultora en diseño, innovación y negocios</p>
         <p class="member-bio mono" data-reveal>I design systems at the intersection of design, operations and interaction. My work focuses on translating complex processes into structured, legible systems that can be understood, navigated and executed. With a background in architecture and spatial design, I approach problems through systems rather than isolated outputs, moving between research, structure and implementation.</p>
       </div>
     </article>
@@ -349,7 +392,7 @@
       <div class="member-txt">
         <h3 class="member-name jabin" data-reveal>Alan</h3>
         <p class="member-caps" data-reveal>ALAN LUNA</p>
-        <p class="member-role" data-reveal>Diseño y Desarrollo</p>
+        <p class="member-role" data-reveal data-i18n="team.alan">Diseño y Desarrollo</p>
         <p class="member-bio mono" data-reveal>Construyo y diseño cosas desde el 2013. He trabajado para agencias como frog, Anagrama y Brands&amp;People, colaborando simultáneamente con muchas personas, con sus ideas o negocios, desde startups, founders hasta trasnacionales. Me gusta mucho leer, pintar, la tecnología, hacer café, moverme, la tipografía y conversar sobre la experiencia humana. También di clases de tipografía algunos años.</p>
       </div>
     </article>
@@ -358,7 +401,7 @@
       <div class="member-txt">
         <h3 class="member-name jabin" data-reveal>Claude</h3>
         <p class="member-caps" data-reveal>Claude by Anthropic</p>
-        <p class="member-role" data-reveal>Modelo de inteligencia artificial</p>
+        <p class="member-role" data-reveal data-i18n="team.clawd">Modelo de inteligencia artificial</p>
         <p class="member-bio mono" data-reveal>Si no sabes quién es Claude, sí te urge hablar con nosotros.</p>
         <p class="member-bio mono" data-reveal><a class="member-link" href="https://www.claude.ai" target="_blank" rel="noopener">www.claude.ai</a></p>
       </div>
@@ -412,6 +455,7 @@
 <script src="vendor/gsap.min.js" defer></script>
 <script src="vendor/ScrollTrigger.min.js" defer></script>
 <script src="vendor/lenis.min.js" defer></script>
-<script src="js/main.js?v=70" defer></script>
+<script src="js/i18n.js?v=73" defer></script>
+<script src="js/main.js?v=73" defer></script>
 </body>
 </html>

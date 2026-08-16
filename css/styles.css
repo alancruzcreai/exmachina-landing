@@ -10,6 +10,7 @@
 @font-face{font-family:'Jabin';src:url('../fonts/Jabin-BoldSwash2.woff2') format('woff2'),url('../fonts/Jabin-BoldSwash2.ttf') format('truetype');font-weight:700;font-display:block}
 
 :root{
+  /* La paleta de marca. Estos NO cambian con el tema: son la identidad. */
   --tinta:#100303;
   --oxblood:#1E0606;
   --rojo:#2E0909;
@@ -20,6 +21,16 @@
   --cyan:#4FC8F2;
   --teal:#2E5D4B;
   --sage:#A9C3B4;
+
+  /* Los que SÍ cambian: roles, no colores. Se leen igual en los dos temas y por
+     eso el resto de la hoja no necesita saber en qué tema está. */
+  --fondo:var(--blanco);          /* fondo de página */
+  --texto:var(--rojo);            /* texto corrido */
+  --texto-tenue:#6A4B4B;          /* secundario */
+  --panel:var(--oxblood);         /* tarjetas y bloques oscuros */
+  --panel-texto:var(--crema);     /* texto sobre panel */
+  --linea:rgba(46,9,9,.14);       /* separadores */
+  --tarjeta:#F4F4F3;              /* fondo de las piezas del carrusel de logos */
   --wrap:min(92vw,1360px);
   --r-lg:28px;
   --r-md:18px;
@@ -27,13 +38,42 @@
   --ease:cubic-bezier(.22,1,.36,1);
 }
 
+/* ---------- TEMA OSCURO ----------
+   Sólo se redefinen los ROLES. La paleta de marca queda intacta, así que el
+   naranja sigue siendo el mismo naranja y no hay dos identidades.
+   Tres estados, como debe ser: sin atributo manda el sistema operativo, y
+   [data-theme] gana en ambos sentidos cuando la persona elige a mano. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --fondo:var(--tinta);
+    --texto:var(--crema);
+    --texto-tenue:#A98F8F;
+    --panel:#180505;
+    --panel-texto:var(--crema);
+    --linea:rgba(237,231,225,.14);
+    --tarjeta:#1C0808;
+  }
+}
+:root[data-theme="dark"]{
+  --fondo:var(--tinta);
+  --texto:var(--crema);
+  --texto-tenue:#A98F8F;
+  --panel:#180505;
+  --panel-texto:var(--crema);
+  --linea:rgba(237,231,225,.14);
+  --tarjeta:#1C0808;
+}
+/* el cambio de tema se acompaña, pero sin arrastrar transiciones a todo el árbol */
+:root.tema-cambiando body,
+:root.tema-cambiando body *{transition:background-color .3s ease,color .3s ease,border-color .3s ease !important}
+
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 html.lenis{scroll-behavior:auto}
 body{
   font-family:'Dapper','Helvetica Neue',Helvetica,Arial,sans-serif;
-  background:var(--blanco);
-  color:var(--rojo);
+  background:var(--fondo);
+  color:var(--texto);
   line-height:1.5;
   -webkit-font-smoothing:antialiased;
   overflow-x:clip;
@@ -75,6 +115,46 @@ ul,ol{list-style:none}
 .brand-word use[href="#lgPlus"]{stroke:var(--naranja)}
 .brand-script{height:clamp(22px,2.1vw,30px);width:auto;fill:var(--crema)}
 #lgPlus{stroke:currentColor}
+
+/* ---------- CONTROLES DE CABECERA: idioma y tema ----------
+   Viven sobre la fotografía del hero, así que van en blanco y no dependen del
+   tema. La cabecera es `absolute`, no `fixed`: sólo existe encima del hero. */
+.hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.hdr-tools{display:flex;align-items:center;gap:clamp(14px,1.6vw,26px);pointer-events:auto}
+.lang{display:flex;align-items:center;gap:10px;
+  font-family:'Neureal','Courier New',monospace;font-size:13px;letter-spacing:.1em}
+.lang-b{border:0;background:none;padding:4px 2px;cursor:pointer;color:rgba(255,255,255,.5);
+  font:inherit;letter-spacing:inherit;transition:color .28s var(--ease)}
+.lang-b:hover{color:rgba(255,255,255,.85)}
+.lang-b.is-on{color:var(--blanco)}
+.lang-sep{width:1px;height:11px;background:rgba(255,255,255,.3)}
+.tema{display:flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.08);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  border-radius:999px;padding:7px 13px 7px 15px;cursor:pointer;color:var(--blanco);
+  font-family:'Neureal','Courier New',monospace;font-size:12px;letter-spacing:.07em;
+  text-transform:uppercase;transition:background .28s var(--ease),border-color .28s var(--ease)}
+.tema:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.34)}
+.tema-ico{width:16px;height:16px;display:block}
+.tema-ico svg{width:100%;height:100%;display:block}
+/* el icono no se cambia, se transforma: el sol se encoge mientras la luna entra */
+.tema-sol,.tema-rayos,.tema-luna{transition:opacity .3s var(--ease),transform .4s var(--ease);
+  transform-origin:50% 50%}
+.tema-luna{opacity:0;transform:scale(.4) rotate(-40deg)}
+:root[data-theme="dark"] .tema-sol,
+:root[data-theme="dark"] .tema-rayos{opacity:0;transform:scale(.4) rotate(40deg)}
+:root[data-theme="dark"] .tema-luna{opacity:1;transform:none}
+/* los mismos controles dentro del modal, donde el fondo ya es tinta */
+.dock-menu-tools{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.dock-menu-tools .lang-b{color:rgba(237,231,225,.5)}
+.dock-menu-tools .lang-b.is-on{color:var(--crema)}
+.dock-menu-tools .lang-sep{background:rgba(237,231,225,.3)}
+.dock-menu-tools .tema{color:var(--crema);border-color:rgba(237,231,225,.22);
+  background:rgba(237,231,225,.08)}
+@media (max-width:767px){
+  /* en móvil la cabecera se queda con el logo solo, como el mockup; los controles
+     viven en el modal, que en móvil es donde se navega */
+  .hdr-tools{display:none}
+}
 
 /* ---------- DOCK NAV (Brand Appart structure, ExMachina glass) ----------
    Measured off the reference: 57px buttons, 10.67px radius, 7.11px gap, the
@@ -309,22 +389,50 @@ ul,ol{list-style:none}
 .hero-slide img{width:100%;height:100%;object-fit:cover;object-position:center 45%}
 .hero.is-live .hero-slide.is-active img{animation:kenburns 6.6s cubic-bezier(.25,.6,.35,1) forwards}
 @keyframes kenburns{from{transform:scale(1.042) translate3d(.35%,0,0)}to{transform:scale(1.0) translate3d(0,0,0)}}
-/* The lettering is its own layer again — and this time it is safe. It drifted on
-   its own before too, but back then the photos underneath had been inpainted to
-   erase the baked-in wordmark, and that patch was poor: smears and blocks over an
-   eye. Any drift dragged the mess into view. The photographs are clean now, so
-   there is nothing underneath to uncover and the layer can move freely. */
-/* The wordmark is the complete artwork now, not the crop that was baked into the
-   old photographs — so it gets padding instead of bleed: contain fits it whole and
-   the inset keeps its ends clear of the edges. Nothing of EX MACHINA is cut. */
-.hero-letter{position:absolute;inset:clamp(18px,4vw,64px);z-index:4;pointer-events:none}
+/* ---------- LETTERING ----------
+   Es su propia capa y esta vez es seguro: antes las fotos venían inpintadas debajo
+   para borrarle el lettering horneado, y cualquier desfase sacaba el parche a la
+   vista. Estas fotos están limpias, así que no hay nada que destapar.
+   Medido en los mockups de escritorio: la tinta va del 13.013% al 76.538% del alto
+   y sangra por izquierda y derecha — el asset ocupa el ancho completo. */
+.hero-letter{position:absolute;left:0;right:0;top:13.013%;height:63.525%;
+  z-index:4;pointer-events:none}
 .hero-letter picture{display:block;width:100%;height:100%;
   transform:translate3d(var(--lx,0px),var(--ly,0px),0)}
-.hero-letter img{width:100%;height:100%;object-fit:contain;object-position:center 48%;
+.hero-letter img{width:100%;height:100%;object-fit:contain;object-position:center center;
   filter:drop-shadow(0 10px 30px rgba(0,0,0,.34))}
+@media (max-width:767px){
+  /* en móvil no sangra por ningún borde: es una pieza chica, del 42.1% del ancho,
+     apoyada justo encima del copy */
+  .hero-letter{left:34%;right:auto;width:42.1%;top:auto;bottom:27%;height:8.33%}
+}
 
 .hero::after{content:'';position:absolute;inset:auto 0 0 0;height:24%;z-index:5;
   background:linear-gradient(to top,rgba(16,3,3,.5),transparent);pointer-events:none}
+
+/* ---------- COPY DEL HERO ----------
+   Medido sobre los mockups. El invariante que pidió el cliente ("el mismo tamaño
+   de tipografía") NO es el font-size sino el ALTO DE MAYÚSCULA, y en los mockups
+   es una fracción constante del ANCHO del viewport: 4.115% en escritorio y 5.181%
+   en móvil. Como NT Dapper tiene cap-height exactamente 0.700 em, el font-size
+   sale de dividir: 4.115/0.7 = 5.879vw y 5.181/0.7 = 7.401vw. Así el texto
+   conserva su tamaño relativo en cualquier pantalla, que es lo que se ve en las
+   cuatro láminas. La interlínea va igual: 5.208% y 6.364% del ancho. */
+.hero-copy{position:absolute;z-index:6;left:60.17%;right:4%;bottom:6.4%;
+  pointer-events:none;color:var(--blanco)}
+.hero-line{
+  position:absolute;left:0;right:0;bottom:0;
+  font-family:'Dapper','Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:500;
+  font-size:5.879vw;line-height:.886;letter-spacing:-.005em;
+  opacity:0;transform:translateY(10px);
+  transition:opacity .5s var(--ease),transform .5s var(--ease);
+}
+.hero-line.is-active{opacity:1;transform:none;transition-delay:.12s}
+@media (max-width:767px){
+  /* en móvil el bloque baja y se recorre a la izquierda, como en los mockups */
+  .hero-copy{left:45.3%;right:5%;bottom:14.6%}
+  .hero-line{font-size:7.401vw;line-height:.86}
+}
 
 .hero-dots{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);display:flex;gap:10px;z-index:6}
 .dot{
@@ -345,9 +453,9 @@ ul,ol{list-style:none}
 
 /* ---------- INTRO ---------- */
 .intro{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(40px,6vw,96px);align-items:center;padding:clamp(84px,10vw,150px) 0}
-.eyebrow{font-family:'Neureal','Courier New',monospace;font-size:14px;letter-spacing:.14em;color:var(--rojo);margin-bottom:30px}
+.eyebrow{font-family:'Neureal','Courier New',monospace;font-size:14px;letter-spacing:.14em;color:var(--texto);margin-bottom:30px}
 .intro-h{font-weight:400;font-size:clamp(27px,2.9vw,42px);line-height:1.22;letter-spacing:-.01em;margin-bottom:30px;max-width:21em}
-.intro-p{font-size:clamp(17px,1.45vw,21px);line-height:1.55;color:var(--rojo);max-width:34em}
+.intro-p{font-size:clamp(17px,1.45vw,21px);line-height:1.55;color:var(--texto);max-width:34em}
 .intro-img{border-radius:var(--r-md);overflow:hidden;aspect-ratio:1445/981}
 .intro-img img{width:100%;height:100%;object-fit:cover}
 
@@ -402,13 +510,13 @@ ul,ol{list-style:none}
 .clients{padding:clamp(90px,11vw,170px) 0 clamp(70px,8vw,120px)}
 .statement{
   font-weight:400;font-size:clamp(30px,4.6vw,66px);line-height:1.12;letter-spacing:-.015em;
-  color:var(--rojo);max-width:19em;margin-bottom:clamp(56px,7vw,110px);
+  color:var(--texto);max-width:19em;margin-bottom:clamp(56px,7vw,110px);
 }
 .marquee{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
 .marquee-track{display:flex;gap:clamp(14px,1.6vw,24px);width:max-content;animation:mq var(--mq-dur,52s) linear infinite}
 .marquee:hover .marquee-track{animation-play-state:paused}
 @keyframes mq{to{transform:translateX(-50%)}}
-.mq-item{flex:0 0 auto;width:clamp(190px,20vw,300px);aspect-ratio:300/135;border-radius:14px;background:#F4F4F3;display:grid;place-items:center;overflow:hidden}
+.mq-item{flex:0 0 auto;width:clamp(190px,20vw,300px);aspect-ratio:300/135;border-radius:14px;background:var(--tarjeta);display:grid;place-items:center;overflow:hidden}
 /* contain, not cover: these are the logos themselves now, trimmed to their own ink
    and on transparency — cover would crop them. The padding is what keeps eighteen
    very different shapes reading as one row. */
@@ -434,7 +542,7 @@ ul,ol{list-style:none}
 .anio{display:flex;align-items:center;justify-content:center;gap:clamp(36px,7vw,110px);margin:clamp(36px,4.5vw,64px) 0}
 .anio .mono{font-size:clamp(26px,3vw,44px);letter-spacing:.06em}
 .anio img{width:clamp(96px,11vw,150px);height:auto}
-.mono-block{font-family:'NeurealMono','Courier New',monospace;font-size:clamp(13px,1.25vw,17px);line-height:1.75;letter-spacing:.05em;color:var(--rojo);max-width:44em;margin-inline:auto;text-transform:uppercase}
+.mono-block{font-family:'NeurealMono','Courier New',monospace;font-size:clamp(13px,1.25vw,17px);line-height:1.75;letter-spacing:.05em;color:var(--texto);max-width:44em;margin-inline:auto;text-transform:uppercase}
 
 /* ---------- MANIFIESTO ---------- */
 .mani{display:flex;flex-direction:column;gap:clamp(90px,12vw,190px);padding-bottom:clamp(90px,11vw,170px)}
@@ -508,8 +616,8 @@ html:not(.js) .mk-ul path{stroke-dashoffset:0}
 .mk-gr.is-in{opacity:1;transform:none}
 html:not(.js) .mk-gr{opacity:1;transform:none}
 
-.mani-num{color:var(--rojo);font-size:15px;letter-spacing:.1em;margin-bottom:26px;position:relative;z-index:2}
-.mani-h{font-size:clamp(34px,5.6vw,82px);color:var(--rojo);max-width:15em;position:relative;z-index:2;margin-bottom:30px}
+.mani-num{color:var(--texto);font-size:15px;letter-spacing:.1em;margin-bottom:26px;position:relative;z-index:2}
+.mani-h{font-size:clamp(34px,5.6vw,82px);color:var(--texto);max-width:15em;position:relative;z-index:2;margin-bottom:30px}
 /* The 34px floor is wider than the narrowest phones can hold: "MULTIDISCIPLINARIAS"
    measures 319px there against a 294px column, and a single word has nowhere to
    break. Below ~386px the size tracks the viewport instead; at 386px and up the
@@ -579,7 +687,7 @@ html:not(.js) .mk-gr{opacity:1;transform:none}
 
 /* ---------- EQUIPO ---------- */
 .equipo-sec{padding:clamp(40px,5vw,80px) clamp(10px,1.6vw,24px) clamp(60px,7vw,110px)}
-.equipo-h{font-size:clamp(64px,11vw,168px);color:var(--rojo);letter-spacing:-.02em;line-height:1;margin-bottom:clamp(30px,4vw,56px)}
+.equipo-h{font-size:clamp(64px,11vw,168px);color:var(--texto);letter-spacing:-.02em;line-height:1;margin-bottom:clamp(30px,4vw,56px)}
 .equipo-card{
   background:#1A0505;border-radius:var(--r-lg);max-width:1600px;margin-inline:auto;
   padding:clamp(26px,4vw,64px);display:flex;flex-direction:column;gap:clamp(56px,7vw,110px);

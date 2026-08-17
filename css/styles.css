@@ -407,8 +407,36 @@ ul,ol{list-style:none}
   .hero-letter{left:34%;right:auto;width:42.1%;top:auto;bottom:27%;height:8.33%}
 }
 
-.hero::after{content:'';position:absolute;inset:auto 0 0 0;height:24%;z-index:5;
-  background:linear-gradient(to top,rgba(16,3,3,.5),transparent);pointer-events:none}
+/* Velo de base, para que el copy blanco tenga sobre qué apoyarse. Antes medía 24%
+   de alto, o sea empezaba en el 76% — por debajo de la primera línea del copy, que
+   arranca en el 62%: esa línea no recibía nada, y con una foto de cielo claro
+   quedaba blanco sobre blanco.
+   Ahora cubre el 55% inferior y, sobre todo, va escalonado en vez de lineal: un
+   `linear-gradient` de dos paradas sobre un degradado de foto deja una banda
+   visible donde termina, porque el ojo detecta la discontinuidad de la derivada.
+   Estas paradas siguen una curva suave, así que el velo se desvanece sin borde. */
+/* Las paradas no son decorativas: están puestas para que en la altura de CADA
+   línea del copy haya alfa suficiente. Medido sobre la lámina peor —el hombre
+   contra un cielo casi blanco—, hace falta α≈.52 donde cae la primera línea para
+   que el blanco llegue a 4.5:1; con la curva anterior ahí sólo había .37 y la
+   línea se quedaba en 2.58:1, o sea prácticamente sin ayuda. */
+.hero::after{content:'';position:absolute;inset:auto 0 0 0;height:62%;z-index:5;
+  background:linear-gradient(to top,
+    rgba(16,3,3,.85) 0%,
+    rgba(16,3,3,.82) 10%,
+    rgba(16,3,3,.77) 20%,
+    rgba(16,3,3,.71) 30%,
+    rgba(16,3,3,.58) 45%,
+    rgba(16,3,3,.40) 60%,
+    rgba(16,3,3,.22) 75%,
+    rgba(16,3,3,.09) 88%,
+    transparent 100%);
+  pointer-events:none}
+@media (max-width:767px){
+  /* en móvil el copy arranca más abajo, así que el velo puede ser más corto y por
+     tanto menos invasivo sobre la fotografía */
+  .hero::after{height:52%}
+}
 
 /* ---------- COPY DEL HERO ----------
    Medido sobre los mockups. El invariante que pidió el cliente ("el mismo tamaño
@@ -423,7 +451,7 @@ ul,ol{list-style:none}
 .hero-line{
   position:absolute;left:0;right:0;bottom:0;
   font-family:'Dapper','Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:500;
-  font-size:5.879vw;line-height:.886;letter-spacing:-.005em;
+  font-size:5.879vw;line-height:.886;letter-spacing:-.028em;
   opacity:0;transform:translateY(10px);
   transition:opacity .5s var(--ease),transform .5s var(--ease);
 }
@@ -431,7 +459,7 @@ ul,ol{list-style:none}
 @media (max-width:767px){
   /* en móvil el bloque baja y se recorre a la izquierda, como en los mockups */
   .hero-copy{left:45.3%;right:5%;bottom:14.6%}
-  .hero-line{font-size:7.401vw;line-height:.86}
+  .hero-line{font-size:7.401vw;line-height:.86;letter-spacing:-.043em}
 }
 
 .hero-dots{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);display:flex;gap:10px;z-index:6}

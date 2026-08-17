@@ -910,7 +910,7 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
    La lista va anclada mientras dura la secuencia; el z-index es explícito y
    descendente, porque el orden del DOM pintaría la última encima de la primera. */
 .pila-wrap{position:relative}
-.pila{position:relative;max-width:1180px;margin-inline:auto;perspective:1200px}
+.pila{position:relative;max-width:min(1400px,94vw);margin-inline:auto;perspective:1200px}
 .pila-item{position:absolute;top:0;left:0;right:0;
   transform-origin:50% 0;backface-visibility:hidden;will-change:transform}
 .pila-item:first-child{position:relative}
@@ -919,8 +919,11 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
 .pila-item:nth-child(2){z-index:3;transform:translateY(18px) scale(.955)}
 .pila-item:nth-child(3){z-index:2;transform:translateY(36px) scale(.910)}
 .pila-item:nth-child(4){z-index:1;transform:translateY(54px) scale(.865)}
-.pila-item .proy{height:100%}
-.pila-item:first-child .proy{height:auto}
+/* Todas del MISMO alto, y generoso. Antes las de atrás llevaban height:100% y su
+   alto lo definía un elemento absoluto sin altura propia — por eso salían
+   cortadas. Un min-height compartido las empareja y les da aire para que la tira
+   de imágenes luzca, que es de lo que vive esta sección. */
+.pila-item .proy{min-height:clamp(440px,42vw,660px)}
 .proy-cuerpo{will-change:transform}
 @media (prefers-reduced-motion:reduce){
   /* sin vuelo ni anclaje: la baraja se vuelve lista y se lee igual */
@@ -932,11 +935,14 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
   padding:clamp(26px,3.4vw,54px);position:relative;overflow:hidden;
   display:grid;grid-template-columns:1fr;gap:clamp(18px,2vw,30px);
   box-shadow:0 30px 70px rgba(16,3,3,.28)}
+/* Fuera de .proy-cuerpo a propósito: ese envoltorio lleva will-change:transform,
+   y eso lo convierte en bloque contenedor de sus hijos absolutos — el número se
+   anclaba a la columna izquierda y caía encima del titular. */
 .proy-num{position:absolute;top:clamp(22px,3vw,46px);right:clamp(22px,3vw,46px);
   font-family:'NeurealMono','Courier New',monospace;font-size:clamp(15px,1.4vw,22px);
   color:var(--pfg);opacity:.9}
 .proy-t{font-size:clamp(26px,3.5vw,54px);line-height:1.04;letter-spacing:-.03em;
-  max-width:15em;text-transform:none}
+  max-width:min(15em,calc(100% - 3.5em));text-transform:none}
 .proy-plus{width:clamp(16px,1.5vw,22px);height:auto;color:var(--pfg);opacity:.9}
 .proy-d{font-size:clamp(14px,1.15vw,17px);line-height:1.5;max-width:44em;color:var(--pfg2)}
 .proy-cita{font-size:clamp(16px,1.5vw,22px);line-height:1.32;max-width:20em;color:var(--pfg)}
@@ -949,10 +955,18 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
 
 .proy-cuerpo{display:flex;flex-direction:column;gap:clamp(14px,1.6vw,26px)}
 @media (min-width:900px){
-  /* en pantalla ancha: texto a la izquierda, tira de imágenes a la derecha */
-  .proy{grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);
-    align-items:end;column-gap:clamp(24px,3vw,54px)}
-  .proy:not(:has(.proy-img)) {grid-template-columns:1fr}
+  /* Como en las láminas: sólo la tarjeta que lleva testimonial parte en dos
+     columnas — la cita necesita ir al lado de la tira. Las demás dejan la tira A
+     TODO EL ANCHO, que es donde las piezas realmente lucen; meterlas en media
+     columna las dejaba en un tercio del tamaño. */
+  .proy:has(.proy-cita){grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+    align-items:stretch;column-gap:clamp(26px,3vw,58px)}
+  .proy:has(.proy-cita) .proy-cuerpo{justify-content:center}
+  .proy:has(.proy-cita) .proy-img{align-self:center}
+  .proy:not(:has(.proy-cita)){grid-template-columns:1fr;
+    grid-template-rows:auto 1fr;align-items:start}
+  .proy:not(:has(.proy-cita)) .proy-img{align-self:end}
+  .proy-img img{width:100%;height:auto}
 }
 @media (max-width:899px){
   /* en móvil la baraja se aplana: en una pantalla angosta las tarjetas de atrás

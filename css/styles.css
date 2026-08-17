@@ -975,3 +975,17 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
   .pila-item,.pila-item:first-child{position:relative;transform:none;margin-bottom:14px}
   .pila-item:last-child{margin-bottom:0}
 }
+
+/* ---------- PROYECTO WEB: recorrido en video ----------
+   Un screenshot no dice nada de una plataforma web: lo que se vende es el
+   movimiento. Va el recorrido real del sitio, grabado del sitio en vivo, dentro
+   de un marco de navegador para que se lea como lo que es. */
+.proy-web{position:relative;border-radius:12px;overflow:hidden;background:#0E0E0E;
+  box-shadow:0 18px 46px rgba(0,0,0,.30)}
+.navegador{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#1B1B1B}
+.nav-puntos{display:flex;gap:5px}
+.nav-puntos i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.22)}
+.nav-url{flex:1;text-align:center;font-family:'NeurealMono','Courier New',monospace;
+  font-size:11px;letter-spacing:.04em;color:rgba(255,255,255,.42);
+  background:rgba(255,255,255,.06);border-radius:5px;padding:3px 10px}
+.proy-video{display:block;width:100%;height:auto;background:#0E0E0E}

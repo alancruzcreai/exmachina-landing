@@ -307,6 +307,29 @@
     });
   }
 
+
+  /* ---------- VIDEO DE PROYECTO ----------
+     Se reproduce sólo cuando está a la vista, y se pausa al salir: un video en
+     bucle corriendo fuera de pantalla gasta batería sin que nadie lo vea. El
+     preload es 'none' hasta que se acerca, para no cargar 700 KB a quien nunca
+     baja hasta ahí. */
+  (function videosProyecto() {
+    const vids = [...document.querySelectorAll('.proy-video')];
+    if (!vids.length) return;
+    if (reduced) return;                       // sin movimiento: se queda el póster
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => {
+        const v = e.target;
+        if (e.isIntersecting) {
+          if (v.preload === 'none') v.preload = 'auto';
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {}); // autoplay bloqueado: queda el póster
+        } else v.pause();
+      });
+    }, { rootMargin: '200px', threshold: .15 });
+    vids.forEach(v => io.observe(v));
+  })();
+
   /* ---------- HERO CAROUSEL ---------- */
   const hero = document.querySelector('.hero');
   const slides = [...document.querySelectorAll('.hero-slide')];

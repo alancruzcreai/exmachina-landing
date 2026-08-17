@@ -892,27 +892,39 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
    scroll, igual que la suya. */
 .entregas{padding:clamp(60px,8vw,120px) clamp(14px,3vw,48px) clamp(80px,10vw,150px)}
 .entregas-h{text-align:center;margin-bottom:clamp(40px,5vw,80px);
-  font-size:clamp(34px,5.4vw,78px);line-height:1.02;letter-spacing:-.03em}
+  font-size:clamp(34px,5.4vw,78px);line-height:1;
+  text-transform:none;letter-spacing:-.052em}
 .entregas-h span{display:block}
 /* el juego de opacidades del original: la primera línea se retira, la segunda manda */
 .entregas-h1{color:var(--texto);opacity:.38}
 .entregas-h2{color:var(--texto)}
 
-.pila{position:relative;perspective:256px;max-width:1180px;margin-inline:auto}
-.pila-item{position:absolute;top:0;left:0;right:0;transform-origin:50% 0}
+/* La mecánica real, medida en su sitio muestreando el scroll cada 150px:
+   la lista SE ANCLA (se queda fija ~3300px) y toda la animación va en translateZ
+   — el translateY no se mueve nunca. Cada tarjeta avanza hacia la cámara por
+   turnos, crece de su tamaño en reposo al completo, y la siguiente la cubre.
+   preserve-3d es lo que ordena el apilado por profundidad: sin él pinta el orden
+   del DOM y la última (la más lejana y pequeña) taparía a la primera. */
+.pila-wrap{position:relative}
+.pila{position:relative;max-width:1180px;margin-inline:auto;
+  perspective:1000px;transform-style:preserve-3d}
+.pila-item{position:absolute;top:0;left:0;right:0;transform-style:preserve-3d;
+  will-change:transform}
 .pila-item:first-child{position:relative}
-/* La perspectiva encoge cada tarjeta desde su borde superior, así que para que
-   asome por ABAJO hay que bajarla más de lo que se encogió. Con escala s y una
-   pestaña p: translateY = 100% - s·100% + p. Y el z-index tiene que ir al revés
-   del DOM: sin él la última pinta encima y tapa a la primera, que es justo lo que
-   no debe pasar — la de arriba es la que se lee. */
-.pila-item:nth-child(1){z-index:4}
-.pila-item:nth-child(2){z-index:3;transform:translate3d(0,17.5%,-30px)}
-.pila-item:nth-child(3){z-index:2;transform:translate3d(0,33%,-60px)}
-.pila-item:nth-child(4){z-index:1;transform:translate3d(0,47%,-90px)}
-/* todas del mismo alto: si no, la pestaña de cada una depende de su contenido */
-.pila-item:not(:first-child) .proy{height:100%}
-.pila-item:not(:first-child){height:100%}
+/* reposo: la baraja se va al fondo. Los valores salen de la proporción de anchos
+   que medí (1 / .906 / .827 / .762): z = P(1 − 1/s) con P=1000 */
+.pila-item:nth-child(1){transform:translateZ(0)}
+.pila-item:nth-child(2){transform:translateZ(-104px)}
+.pila-item:nth-child(3){transform:translateZ(-209px)}
+.pila-item:nth-child(4){transform:translateZ(-312px)}
+/* todas del mismo alto, para que la baraja sea pareja al recibir el foco */
+.pila-item .proy{height:100%}
+.pila-item:first-child .proy{height:auto}
+@media (prefers-reduced-motion:reduce){
+  /* sin vuelo: la baraja se vuelve lista y se lee igual */
+  .pila{perspective:none;transform-style:flat}
+  .pila-item,.pila-item:first-child{position:relative;transform:none;margin-bottom:16px}
+}
 
 .proy{background:var(--pbg);color:var(--pfg);border-radius:clamp(14px,1.4vw,22px);
   padding:clamp(26px,3.4vw,54px);position:relative;overflow:hidden;

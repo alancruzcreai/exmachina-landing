@@ -633,6 +633,46 @@
       yPercent: 13, ease: 'none',
       scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.4 }
     });
+
+    /* ---------- LO QUE ENTREGAMOS: la baraja ----------
+       Reproduce la mecánica que medí en el sitio de referencia muestreando su scroll
+       cada 150px: la lista se ancla y cada tarjeta avanza en Z hacia la cámara por
+       turnos. El translateY nunca se mueve — todo el efecto es profundidad. */
+    (function baraja() {
+      const wrap = document.querySelector('.pila-wrap');
+      const pila = document.querySelector('.pila');
+      if (!wrap || !pila || typeof gsap === 'undefined' || reduced) return;
+      const items = [...pila.querySelectorAll('.pila-item')];
+      if (items.length < 2) return;
+      // el mismo reposo que declara el CSS, para que el arranque no dé un salto
+      const REPOSO = [0, -104, -209, -312];
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: wrap,
+          start: 'center center',
+          // una pantalla de scroll por cada tarjeta que tiene que avanzar
+          end: () => '+=' + (window.innerHeight * (items.length - 1)),
+          pin: true, pinSpacing: true,
+          scrub: 0.55,
+          invalidateOnRefresh: true
+        }
+      });
+      // cada tarjeta viaja al frente en su tramo; la anterior se queda donde llegó,
+      // así la nueva la cubre en vez de empujarla
+      items.forEach((it, i) => {
+        if (i === 0) return;
+        tl.to(it, { z: 0, ease: 'none', duration: 1 }, i - 1);
+      });
+      // las que ya pasaron ceden un poco de tamaño: da la sensación de que la de
+      // enfrente pesa más, sin llegar a moverlas de sitio
+      items.forEach((it, i) => {
+        if (i === items.length - 1) return;
+        tl.to(it, { z: -60, ease: 'none', duration: 1 }, i);
+      });
+      gsap.set(items, { z: (i) => REPOSO[i] ?? -312 });
+    })();
+
     gsap.to('.hero-dots', {
       opacity: 0, y: 20, ease: 'none',
       scrollTrigger: { trigger: '.hero', start: 'top top', end: '38% top', scrub: 0.3 }

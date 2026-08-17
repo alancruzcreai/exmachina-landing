@@ -1002,40 +1002,32 @@
 
 /* ================= TEMA =================
    El tema ya se aplicó antes del primer pintado (script en el <head>); aquí sólo
-   viven los controles. El idioma vive en i18n.js, que corre antes que este
-   archivo por la razón que se explica allí. */
+   viven los controles. Son dos botones, uno por posición, en vez de uno que
+   alterna: así el estado se lee sin interpretar nada. */
 (function tema() {
   'use strict';
   const raiz = document.documentElement;
-  const DIC = window.__EXM_I18N || {};
-  const enIngles = raiz.lang === 'en';
-
-  const oscuroDelSistema = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const actual = () => raiz.getAttribute('data-theme') || (oscuroDelSistema() ? 'dark' : 'light');
+  const delSistema = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  const actual = () => raiz.getAttribute('data-theme') || delSistema();
 
   function pintar() {
-    const oscuro = actual() === 'dark';
-    document.querySelectorAll('[data-tema]').forEach(b => {
-      b.setAttribute('aria-pressed', oscuro ? 'true' : 'false');
-      const t = b.querySelector('.tema-txt');
-      if (!t) return;
-      // la etiqueta dice a dónde te lleva, no dónde estás
-      t.textContent = enIngles
-        ? (oscuro ? DIC['ui.temaClaro'] || 'Light mode' : DIC['ui.tema'] || 'Dark mode')
-        : (oscuro ? 'Modo claro' : 'Modo oscuro');
+    const t = actual();
+    document.querySelectorAll('.tema-b').forEach(b => {
+      b.setAttribute('aria-pressed', b.getAttribute('data-tema') === t ? 'true' : 'false');
     });
   }
   function poner(t) {
+    if (t === actual() && raiz.hasAttribute('data-theme')) return;
     raiz.setAttribute('data-theme', t);
     try { localStorage.setItem('exm-tema', t); } catch (e) {}
     // la clase sólo vive lo que dura el cambio: dejar transiciones puestas en todo
     // el árbol encarece cada repintado posterior
     raiz.classList.add('tema-cambiando');
-    setTimeout(() => raiz.classList.remove('tema-cambiando'), 400);
+    setTimeout(() => raiz.classList.remove('tema-cambiando'), 420);
     pintar();
   }
-  document.querySelectorAll('[data-tema]').forEach(b => {
-    b.addEventListener('click', () => poner(actual() === 'dark' ? 'light' : 'dark'));
+  document.querySelectorAll('.tema-b').forEach(b => {
+    b.addEventListener('click', () => poner(b.getAttribute('data-tema')));
   });
   // sin elección manual, seguir al sistema si cambia en vivo
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {

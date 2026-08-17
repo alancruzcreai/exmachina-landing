@@ -635,42 +635,39 @@
     });
 
     /* ---------- LO QUE ENTREGAMOS: la baraja ----------
-       Reproduce la mecánica que medí en el sitio de referencia muestreando su scroll
-       cada 150px: la lista se ancla y cada tarjeta avanza en Z hacia la cámara por
-       turnos. El translateY nunca se mueve — todo el efecto es profundidad. */
+       Leído del DOM en vivo de la referencia: mientras se hace scroll, cada
+       tarjeta lleva `translate(0,-Npx) rotateX(15deg)` y su titular, por separado,
+       `translate(0,-100px) rotateX(40deg)`. No es profundidad — la pieza SUBE y SE
+       INCLINA al salir, y su texto sube más rápido y se inclina más. Ese desfase
+       entre la tarjeta y su contenido es lo que hace que flote en vez de deslizarse.
+       La lista queda anclada mientras dura la secuencia. */
     (function baraja() {
       const wrap = document.querySelector('.pila-wrap');
       const pila = document.querySelector('.pila');
-      if (!wrap || !pila || typeof gsap === 'undefined' || reduced) return;
+      if (!wrap || !pila || reduced) return;
       const items = [...pila.querySelectorAll('.pila-item')];
       if (items.length < 2) return;
-      // el mismo reposo que declara el CSS, para que el arranque no dé un salto
-      const REPOSO = [0, -104, -209, -312];
 
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: wrap,
-          start: 'center center',
-          // una pantalla de scroll por cada tarjeta que tiene que avanzar
-          end: () => '+=' + (window.innerHeight * (items.length - 1)),
-          pin: true, pinSpacing: true,
-          scrub: 0.55,
-          invalidateOnRefresh: true
+          trigger: wrap, start: 'center center',
+          end: () => '+=' + (window.innerHeight * (items.length - 1) * 1.05),
+          pin: true, pinSpacing: true, scrub: 0.5, invalidateOnRefresh: true
         }
       });
-      // cada tarjeta viaja al frente en su tramo; la anterior se queda donde llegó,
-      // así la nueva la cubre en vez de empujarla
+
       items.forEach((it, i) => {
-        if (i === 0) return;
-        tl.to(it, { z: 0, ease: 'none', duration: 1 }, i - 1);
+        const cuerpo = it.querySelector('.proy-cuerpo');
+        // la última no sale: es el fondo de la baraja y se queda a la vista
+        if (i < items.length - 1) {
+          tl.to(it, { yPercent: -118, rotateX: 15, ease: 'none', duration: 1 }, i)
+            .to(cuerpo, { y: -100, rotateX: 40, opacity: .35, ease: 'none', duration: 1 }, i);
+        }
+        // la de atrás sube a su sitio y recupera tamaño mientras la de enfrente se va
+        if (i > 0) {
+          tl.to(it, { y: 0, scale: 1, ease: 'none', duration: 1 }, i - 1);
+        }
       });
-      // las que ya pasaron ceden un poco de tamaño: da la sensación de que la de
-      // enfrente pesa más, sin llegar a moverlas de sitio
-      items.forEach((it, i) => {
-        if (i === items.length - 1) return;
-        tl.to(it, { z: -60, ease: 'none', duration: 1 }, i);
-      });
-      gsap.set(items, { z: (i) => REPOSO[i] ?? -312 });
     })();
 
     gsap.to('.hero-dots', {

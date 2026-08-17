@@ -899,31 +899,33 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
 .entregas-h1{color:var(--texto);opacity:.38}
 .entregas-h2{color:var(--texto)}
 
-/* La mecánica real, medida en su sitio muestreando el scroll cada 150px:
-   la lista SE ANCLA (se queda fija ~3300px) y toda la animación va en translateZ
-   — el translateY no se mueve nunca. Cada tarjeta avanza hacia la cámara por
-   turnos, crece de su tamaño en reposo al completo, y la siguiente la cubre.
-   preserve-3d es lo que ordena el apilado por profundidad: sin él pinta el orden
-   del DOM y la última (la más lejana y pequeña) taparía a la primera. */
+/* La mecánica real, leída del DOM en vivo de la referencia. El estilo que el
+   sitio escribe en cada tarjeta mientras se hace scroll es:
+       transform: translate(0px,-604px) rotateX(15deg)
+   y en su titular, por separado:
+       transform: translate(0px,-100px) rotateX(40deg)
+   O sea NO es profundidad: la tarjeta SUBE y SE INCLINA al salir, y su titular
+   sube más rápido y se inclina más. Ese desfase entre la tarjeta y su texto es lo
+   que da la sensación de que la pieza flota y pasa, en vez de sólo deslizarse.
+   La lista va anclada mientras dura la secuencia; el z-index es explícito y
+   descendente, porque el orden del DOM pintaría la última encima de la primera. */
 .pila-wrap{position:relative}
-.pila{position:relative;max-width:1180px;margin-inline:auto;
-  perspective:1000px;transform-style:preserve-3d}
-.pila-item{position:absolute;top:0;left:0;right:0;transform-style:preserve-3d;
-  will-change:transform}
+.pila{position:relative;max-width:1180px;margin-inline:auto;perspective:1200px}
+.pila-item{position:absolute;top:0;left:0;right:0;
+  transform-origin:50% 0;backface-visibility:hidden;will-change:transform}
 .pila-item:first-child{position:relative}
-/* reposo: la baraja se va al fondo. Los valores salen de la proporción de anchos
-   que medí (1 / .906 / .827 / .762): z = P(1 − 1/s) con P=1000 */
-.pila-item:nth-child(1){transform:translateZ(0)}
-.pila-item:nth-child(2){transform:translateZ(-104px)}
-.pila-item:nth-child(3){transform:translateZ(-209px)}
-.pila-item:nth-child(4){transform:translateZ(-312px)}
-/* todas del mismo alto, para que la baraja sea pareja al recibir el foco */
+/* reposo: la baraja, cada una un poco más chica y más abajo */
+.pila-item:nth-child(1){z-index:4}
+.pila-item:nth-child(2){z-index:3;transform:translateY(18px) scale(.955)}
+.pila-item:nth-child(3){z-index:2;transform:translateY(36px) scale(.910)}
+.pila-item:nth-child(4){z-index:1;transform:translateY(54px) scale(.865)}
 .pila-item .proy{height:100%}
 .pila-item:first-child .proy{height:auto}
+.proy-cuerpo{will-change:transform}
 @media (prefers-reduced-motion:reduce){
-  /* sin vuelo: la baraja se vuelve lista y se lee igual */
-  .pila{perspective:none;transform-style:flat}
-  .pila-item,.pila-item:first-child{position:relative;transform:none;margin-bottom:16px}
+  /* sin vuelo ni anclaje: la baraja se vuelve lista y se lee igual */
+  .pila{perspective:none}
+  .pila-item,.pila-item:first-child{position:relative;transform:none !important;margin-bottom:16px}
 }
 
 .proy{background:var(--pbg);color:var(--pfg);border-radius:clamp(14px,1.4vw,22px);
@@ -945,18 +947,12 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
 .proy-img{border-radius:10px;overflow:hidden}
 .proy-img img{width:100%;height:auto;display:block}
 
+.proy-cuerpo{display:flex;flex-direction:column;gap:clamp(14px,1.6vw,26px)}
 @media (min-width:900px){
-  /* en pantalla ancha el texto va a la izquierda y la tira de imágenes a la
-     derecha, como en las láminas */
-  .proy{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
-    grid-template-areas:'num num' 'tit tit' 'plus plus' 'desc desc' 'cita img' 'quien img';
+  /* en pantalla ancha: texto a la izquierda, tira de imágenes a la derecha */
+  .proy{grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);
     align-items:end;column-gap:clamp(24px,3vw,54px)}
-  .proy-t{grid-area:tit} .proy-plus{grid-area:plus} .proy-d{grid-area:desc}
-  .proy-cita{grid-area:cita;align-self:end} .proy-quien{grid-area:quien}
-  .proy-img{grid-area:img;align-self:end}
-  /* las tarjetas sin testimonio dejan que la tira cruce todo el ancho */
-  .proy:not(:has(.proy-cita)){grid-template-columns:1fr;
-    grid-template-areas:'tit' 'plus' 'desc' 'img'}
+  .proy:not(:has(.proy-img)) {grid-template-columns:1fr}
 }
 @media (max-width:899px){
   /* en móvil la baraja se aplana: en una pantalla angosta las tarjetas de atrás

@@ -419,17 +419,20 @@ ul,ol{list-style:none}
    línea del copy haya alfa suficiente. Medido sobre la lámina peor —el hombre
    contra un cielo casi blanco—, hace falta α≈.52 donde cae la primera línea para
    que el blanco llegue a 4.5:1; con la curva anterior ahí sólo había .37 y la
-   línea se quedaba en 2.58:1, o sea prácticamente sin ayuda. */
+   línea se quedaba en 2.58:1, o sea prácticamente sin ayuda.
+   Aclarado despues a peticion de Alan: la curva baja mas en la BASE, donde habia
+   11:1 y sobraba margen, y poco a la altura de la primera linea, que es la que
+   necesita el apoyo. Asi el velo pesa mucho menos sin perder legibilidad. */
 .hero::after{content:'';position:absolute;inset:auto 0 0 0;height:62%;z-index:5;
   background:linear-gradient(to top,
-    rgba(16,3,3,.85) 0%,
-    rgba(16,3,3,.82) 10%,
-    rgba(16,3,3,.77) 20%,
-    rgba(16,3,3,.71) 30%,
-    rgba(16,3,3,.58) 45%,
-    rgba(16,3,3,.40) 60%,
-    rgba(16,3,3,.22) 75%,
-    rgba(16,3,3,.09) 88%,
+    rgba(16,3,3,.62) 0%,
+    rgba(16,3,3,.60) 10%,
+    rgba(16,3,3,.57) 20%,
+    rgba(16,3,3,.54) 30%,
+    rgba(16,3,3,.48) 45%,
+    rgba(16,3,3,.34) 60%,
+    rgba(16,3,3,.18) 75%,
+    rgba(16,3,3,.07) 88%,
     transparent 100%);
   pointer-events:none}
 @media (max-width:767px){

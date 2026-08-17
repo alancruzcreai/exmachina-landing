@@ -882,3 +882,74 @@ html.js.anim-ready [data-reveal],html.js.anim-ready [data-reveal-group]>*,html.j
   html.js [data-reveal],html.js [data-reveal-group]>*,html.js [data-clip]{opacity:1;transform:none;clip-path:none}
   .pill{animation-delay:.5s}
 }
+
+/* ---------- LO QUE ENTREGAMOS ----------
+   La baraja de Brand Appart, medida en su sitio. Lo que la hace ver bien NO es un
+   scale(): el contenedor tiene `perspective:256px` y cada tarjeta se empuja en Z.
+   El encogimiento sale solo de la perspectiva — 256/(256+30)=0.895, que es
+   exactamente la proporción de anchos que medí (770/860). Con scale() la baraja
+   se ve plana; con Z hay profundidad de verdad. Es estática: no se anima con el
+   scroll, igual que la suya. */
+.entregas{padding:clamp(60px,8vw,120px) clamp(14px,3vw,48px) clamp(80px,10vw,150px)}
+.entregas-h{text-align:center;margin-bottom:clamp(40px,5vw,80px);
+  font-size:clamp(34px,5.4vw,78px);line-height:1.02;letter-spacing:-.03em}
+.entregas-h span{display:block}
+/* el juego de opacidades del original: la primera línea se retira, la segunda manda */
+.entregas-h1{color:var(--texto);opacity:.38}
+.entregas-h2{color:var(--texto)}
+
+.pila{position:relative;perspective:256px;max-width:1180px;margin-inline:auto}
+.pila-item{position:absolute;top:0;left:0;right:0;transform-origin:50% 0}
+.pila-item:first-child{position:relative}
+/* La perspectiva encoge cada tarjeta desde su borde superior, así que para que
+   asome por ABAJO hay que bajarla más de lo que se encogió. Con escala s y una
+   pestaña p: translateY = 100% - s·100% + p. Y el z-index tiene que ir al revés
+   del DOM: sin él la última pinta encima y tapa a la primera, que es justo lo que
+   no debe pasar — la de arriba es la que se lee. */
+.pila-item:nth-child(1){z-index:4}
+.pila-item:nth-child(2){z-index:3;transform:translate3d(0,17.5%,-30px)}
+.pila-item:nth-child(3){z-index:2;transform:translate3d(0,33%,-60px)}
+.pila-item:nth-child(4){z-index:1;transform:translate3d(0,47%,-90px)}
+/* todas del mismo alto: si no, la pestaña de cada una depende de su contenido */
+.pila-item:not(:first-child) .proy{height:100%}
+.pila-item:not(:first-child){height:100%}
+
+.proy{background:var(--pbg);color:var(--pfg);border-radius:clamp(14px,1.4vw,22px);
+  padding:clamp(26px,3.4vw,54px);position:relative;overflow:hidden;
+  display:grid;grid-template-columns:1fr;gap:clamp(18px,2vw,30px);
+  box-shadow:0 30px 70px rgba(16,3,3,.28)}
+.proy-num{position:absolute;top:clamp(22px,3vw,46px);right:clamp(22px,3vw,46px);
+  font-family:'NeurealMono','Courier New',monospace;font-size:clamp(15px,1.4vw,22px);
+  color:var(--pfg);opacity:.9}
+.proy-t{font-size:clamp(26px,3.5vw,54px);line-height:1.04;letter-spacing:-.03em;
+  max-width:15em;text-transform:none}
+.proy-plus{width:clamp(16px,1.5vw,22px);height:auto;color:var(--pfg);opacity:.9}
+.proy-d{font-size:clamp(14px,1.15vw,17px);line-height:1.5;max-width:44em;color:var(--pfg2)}
+.proy-cita{font-size:clamp(16px,1.5vw,22px);line-height:1.32;max-width:20em;color:var(--pfg)}
+.proy-quien figcaption{display:flex;flex-direction:column;gap:1px;
+  font-size:clamp(12px,1vw,15px);line-height:1.35}
+.proy-quien b{font-weight:500;color:var(--pfg)}
+.proy-quien span,.proy-quien em{color:var(--pfg2);font-style:normal}
+.proy-img{border-radius:10px;overflow:hidden}
+.proy-img img{width:100%;height:auto;display:block}
+
+@media (min-width:900px){
+  /* en pantalla ancha el texto va a la izquierda y la tira de imágenes a la
+     derecha, como en las láminas */
+  .proy{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
+    grid-template-areas:'num num' 'tit tit' 'plus plus' 'desc desc' 'cita img' 'quien img';
+    align-items:end;column-gap:clamp(24px,3vw,54px)}
+  .proy-t{grid-area:tit} .proy-plus{grid-area:plus} .proy-d{grid-area:desc}
+  .proy-cita{grid-area:cita;align-self:end} .proy-quien{grid-area:quien}
+  .proy-img{grid-area:img;align-self:end}
+  /* las tarjetas sin testimonio dejan que la tira cruce todo el ancho */
+  .proy:not(:has(.proy-cita)){grid-template-columns:1fr;
+    grid-template-areas:'tit' 'plus' 'desc' 'img'}
+}
+@media (max-width:899px){
+  /* en móvil la baraja se aplana: en una pantalla angosta las tarjetas de atrás
+     no alcanzan a asomar y sólo estorbarían al lector */
+  .pila{perspective:none}
+  .pila-item,.pila-item:first-child{position:relative;transform:none;margin-bottom:14px}
+  .pila-item:last-child{margin-bottom:0}
+}

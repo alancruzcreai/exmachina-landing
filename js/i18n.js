@@ -68,6 +68,9 @@
     'mani.5.p': 'there is no industry where the power of good design combined with artificial intelligence and strategic analysis does not generate disruptive, scalable, automated and highly monetisable change.',
     'mani.6.h': 'WE WORK FROM ANY <span class="mk-hl">PART OF THE WORLD</span>',
     'mani.6.p': 'we are travelling souls who feed on sharing and living new experiences. That does not stop us from collaborating actively in multiple time zones, and when we coincide in the same place, we invite each other to a meal or a coffee',
+    // ---- lo que entregamos
+    'ent.h1': 'What we ship.',
+    'ent.h2': 'Recent projects delivered in record time',
     // ---- trabajo
     'work.tag': 'Selected work',
     'work.h1': 'Rebranding', 'work.h2': 'that makes you fall in love',
